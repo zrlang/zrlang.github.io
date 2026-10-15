@@ -1,0 +1,54 @@
+---
+layout: default
+title: 页面未找到
+permalink: /404.html
+sitemap: false
+---
+
+<div class="error-page">
+  <p class="error-code">404</p>
+  <h1 class="error-title">这个页面不存在</h1>
+  <p class="error-desc">
+    链接可能已经过期，或者地址拼错了。zr 还在 0.x 阶段，内容会频繁变动。
+  </p>
+  <div class="error-actions">
+    <a class="btn btn-primary" href="{{ '/' | relative_url }}">回到首页</a>
+    <a class="btn btn-outline" href="{{ '/learn/' | relative_url }}">开始学习</a>
+    <a class="btn btn-outline" href="https://github.com/zrlang/zrlang.github.io/issues" target="_blank" rel="noopener">报告坏链接</a>
+  </div>
+</div>
+
+<style>
+  .error-page {
+    max-width: 40rem;
+    margin: 0 auto;
+    padding: var(--sp-9) var(--sp-5);
+    text-align: center;
+  }
+  .error-code {
+    margin: 0;
+    font-family: var(--font-mono);
+    font-size: 5rem;
+    font-weight: 800;
+    line-height: 1;
+    color: var(--accent);
+    letter-spacing: -0.04em;
+  }
+  .error-title {
+    margin: var(--sp-4) 0 var(--sp-3);
+    font-size: var(--fs-2xl);
+    font-weight: 700;
+    color: var(--fg-strong);
+  }
+  .error-desc {
+    margin: 0 auto var(--sp-6);
+    max-width: 30rem;
+    color: var(--fg-muted);
+  }
+  .error-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: var(--sp-3);
+  }
+</style>

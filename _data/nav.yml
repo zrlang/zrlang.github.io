@@ -1,0 +1,61 @@
+# 顶部主导航
+main:
+  - title: 学习
+    url: /learn/
+  - title: 工具链
+    url: /tools/
+  - title: 标准库
+    url: /std/
+  - title: 博客
+    url: /blog/
+  - title: 社区
+    url: /community/
+
+# 左侧文档侧边栏
+learn:
+  - title: 开始
+    items:
+      - title: 简介
+        url: /learn/
+      - title: 安装与第一个程序
+        url: /learn/getting-started/
+      - title: 语法速览
+        url: /learn/syntax/
+  - title: 核心机制
+    items:
+      - title: 所有权与借用
+        url: /learn/ownership/
+      - title: 类型与 trait
+        url: /learn/types/
+      - title: 错误处理
+        url: /learn/errors/
+  - title: 进阶特性
+    items:
+      - title: 异步与协程
+        url: /learn/async/
+      - title: comptime 编译期求值
+        url: /learn/comptime/
+      - title: 嵌入式与交叉编译
+        url: /learn/embedded/
+
+tools:
+  - title: 工具链
+    items:
+      - title: 概览
+        url: /tools/
+      - title: 命令行参考
+        url: /tools/cli/
+      - title: 支持的目标平台
+        url: /tools/targets/
+      - title: 编译器架构
+        url: /tools/architecture/
+
+community_sidebar:
+  - title: 社区
+    items:
+      - title: 概览
+        url: /community/
+      - title: 路线图
+        url: /community/roadmap/
+      - title: 贡献指南
+        url: /community/contributing/

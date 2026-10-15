@@ -1,0 +1,53 @@
+<footer class="site-footer">
+  <div class="site-footer-inner">
+
+    <div class="footer-brand">
+      <a class="brand" href="{{ '/' | relative_url }}">
+        {%- include logo.html -%}
+        <span class="brand-name">zr</span>
+      </a>
+      <p class="footer-tagline">{{ site.tagline }}</p>
+      <p class="footer-version">当前版本 v{{ site.version }} · {{ site.license }} 许可证</p>
+    </div>
+
+    <nav class="footer-cols" aria-label="页脚导航">
+      <div class="footer-col">
+        <h3>学习</h3>
+        <ul>
+          {%- for group in site.data.nav.learn -%}
+          {%- for item in group.items -%}
+          <li><a href="{{ item.url | relative_url }}">{{ item.title }}</a></li>
+          {%- endfor -%}
+          {%- endfor -%}
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h3>工具链</h3>
+        <ul>
+          {%- for group in site.data.nav.tools -%}
+          {%- for item in group.items -%}
+          <li><a href="{{ item.url | relative_url }}">{{ item.title }}</a></li>
+          {%- endfor -%}
+          {%- endfor -%}
+          <li><a href="{{ site.repo_url }}">源码仓库</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h3>社区</h3>
+        <ul>
+          <li><a href="{{ '/community/' | relative_url }}">社区概览</a></li>
+          <li><a href="{{ '/community/roadmap/' | relative_url }}">路线图</a></li>
+          <li><a href="{{ '/community/contributing/' | relative_url }}">贡献指南</a></li>
+          <li><a href="{{ '/blog/' | relative_url }}">博客</a></li>
+        </ul>
+      </div>
+    </nav>
+  </div>
+
+  <div class="site-footer-bottom">
+    <p>zr 是一门开源的系统编程语言，采用 {{ site.license }} 许可证。</p>
+    <p class="footer-made">
+      用 <span aria-hidden="true">◆</span> Markdown 编写 · 由 Jekyll 构建
+    </p>
+  </div>
+</footer>

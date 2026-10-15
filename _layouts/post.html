@@ -1,0 +1,46 @@
+---
+layout: default
+---
+<article class="post">
+  <header class="post-header">
+    {%- if page.section -%}
+    <nav class="breadcrumb" aria-label="面包屑">
+      <a href="{{ '/' | relative_url }}">zr</a>
+      <span class="breadcrumb-sep" aria-hidden="true">/</span>
+      <a href="{{ '/blog/' | relative_url }}">博客</a>
+    </nav>
+    {%- endif -%}
+    <h1 class="post-title">{{ page.title }}</h1>
+    <p class="post-meta">
+      <time datetime="{{ page.date | date_to_xmlschema }}">{{ page.date | date: "%Y 年 %m 月 %d 日" }}</time>
+      {%- if page.author %} · <span>{{ page.author }}</span>{% endif %}
+      {%- if page.tags and page.tags.size > 0 %} · {% for tag in page.tags %}<span class="tag">{{ tag }}</span>{% endfor %}{% endif -%}
+    </p>
+    {%- if page.description -%}<p class="post-lede">{{ page.description }}</p>{%- endif -%}
+  </header>
+
+  <div class="doc-body">
+    <article class="prose">{{ content }}</article>
+    <nav class="page-toc" id="page-toc" aria-label="本页目录" hidden>
+      <h2 class="page-toc-title">本页目录</h2>
+      <ul class="page-toc-list" id="page-toc-list"></ul>
+    </nav>
+  </div>
+
+  {%- if page.prev or page.next -%}
+  <nav class="page-nav" aria-label="上一页 / 下一页">
+    {%- if page.previous -%}
+    <a class="page-nav-link page-nav-prev" href="{{ page.previous.url | relative_url }}">
+      <span class="page-nav-dir">← 上一篇</span>
+      <span class="page-nav-title">{{ page.previous.title }}</span>
+    </a>
+    {%- endif -%}
+    {%- if page.next -%}
+    <a class="page-nav-link page-nav-next" href="{{ page.next.url | relative_url }}">
+      <span class="page-nav-dir">下一篇 →</span>
+      <span class="page-nav-title">{{ page.next.title }}</span>
+    </a>
+    {%- endif -%}
+  </nav>
+  {%- endif -%}
+</article>

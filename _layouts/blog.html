@@ -1,0 +1,38 @@
+---
+layout: default
+---
+{%- assign posts = site.posts | where_exp: "p", "p.section == page.section" -%}
+<div class="doc-layout{% if page.sidebar %} has-sidebar{% endif %}">
+  {%- if page.sidebar -%}{%- include sidebar.html -%}{%- endif -%}
+
+  <div class="doc-main">
+    <header class="doc-header">
+      <h1 class="doc-title">{{ page.title }}</h1>
+      {%- if page.description -%}<p class="doc-description">{{ page.description }}</p>{%- endif -%}
+    </header>
+
+    <div class="prose">{{ content }}</div>
+
+    {%- if page.section -%}
+    <div class="post-list" id="post-list" data-post-count="{{ posts.size }}">
+      {%- for post in posts -%}
+      <article class="post-card">
+        <h2 class="post-card-title"><a href="{{ post.url | relative_url }}">{{ post.title }}</a></h2>
+        <p class="post-card-meta">
+          <time datetime="{{ post.date | date_to_xmlschema }}">{{ post.date | date: "%Y 年 %m 月 %d 日" }}</time>
+          {%- if post.author %} · {{ post.author }}{% endif -%}
+        </p>
+        {%- if post.excerpt or post.description -%}
+        <p class="post-card-excerpt">{{ post.excerpt | default: post.description | strip_html | strip_newlines | truncate: 160 }}</p>
+        {%- endif -%}
+        {%- if post.tags and post.tags.size > 0 -%}
+        <p class="post-card-tags">
+          {%- for tag in post.tags %}<span class="tag">{{ tag }}</span>{% endfor -%}
+        </p>
+        {%- endif -%}
+      </article>
+      {%- endfor -%}
+    </div>
+    {%- endif -%}
+  </div>
+</div>

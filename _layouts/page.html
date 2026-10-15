@@ -1,0 +1,66 @@
+---
+layout: default
+---
+{%- assign sidebar = page.sidebar -%}
+<div class="doc-layout{% if sidebar %} has-sidebar{% endif %}">
+
+  {%- if sidebar -%}{%- include sidebar.html -%}{%- endif -%}
+
+  <div class="doc-main">
+    {%- if page.title -%}
+    <header class="doc-header">
+      {%- if page.breadcrumb -%}
+      <nav class="breadcrumb" aria-label="面包屑">
+        <a href="{{ '/' | relative_url }}">zr</a>
+        {%- for crumb in page.breadcrumb -%}
+        <span class="breadcrumb-sep" aria-hidden="true">/</span>
+        {%- if crumb.url -%}<a href="{{ crumb.url | relative_url }}">{{ crumb.title }}</a>{%- else -%}<span>{{ crumb.title }}</span>{%- endif -%}
+        {%- endfor -%}
+      </nav>
+      {%- endif -%}
+      <h1 class="doc-title">{{ page.title }}</h1>
+      {%- if page.description -%}
+      <p class="doc-description">{{ page.description }}</p>
+      {%- endif -%}
+    </header>
+    {%- endif -%}
+
+    <div class="doc-body">
+      <article class="prose">
+        {{ content }}
+      </article>
+
+      <nav class="page-toc" id="page-toc" aria-label="本页目录" hidden>
+        <h2 class="page-toc-title">本页目录</h2>
+        <ul class="page-toc-list" id="page-toc-list"></ul>
+      </nav>
+    </div>
+
+    {%- if page.prev or page.next -%}
+    {%- assign nav_group = site.data.nav[page.sidebar] -%}
+    <nav class="page-nav" aria-label="上一页 / 下一页">
+      {%- if page.prev -%}
+      <a class="page-nav-link page-nav-prev" href="{{ page.prev.url | relative_url }}">
+        <span class="page-nav-dir">← 上一页</span>
+        <span class="page-nav-title">{{ page.prev.title }}</span>
+      </a>
+      {%- endif -%}
+      {%- if page.next -%}
+      <a class="page-nav-link page-nav-next" href="{{ page.next.url | relative_url }}">
+        <span class="page-nav-dir">下一页 →</span>
+        <span class="page-nav-title">{{ page.next.title }}</span>
+      </a>
+      {%- endif -%}
+    </nav>
+    {%- endif -%}
+
+    <footer class="doc-footer">
+      <p>
+        发现问题？
+        <a href="{{ site.edit_url }}/{{ page.path }}" target="_blank" rel="noopener">在 GitHub 上编辑本页</a>
+        或
+        <a href="{{ site.issues_url }}" target="_blank" rel="noopener">提交 issue</a>。
+      </p>
+    </footer>
+  </div>
+</div>

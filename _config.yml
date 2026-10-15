@@ -1,0 +1,102 @@
+# ---------------------------------------------------------------------------
+# zr 语言官网 —— Jekyll 配置
+# 由 GitHub Pages (github-pages gem) 直接构建，无需额外服务。
+# ---------------------------------------------------------------------------
+
+title: zr
+tagline: 让系统编程重新变得愉快
+description: >-
+  zr 是一门静态类型、编译型、系统级编程语言。融合 Rust 的内存安全、
+  Zig 的显式控制与 Python 的表达力，为系统编程而生。
+
+url: https://zrlang.github.io
+baseurl: ""
+lang: zh-CN
+
+# 版本与仓库信息（供模板引用）
+version: 0.5.0
+license: MIT
+repo_url: https://github.com/zrlang/zr
+edit_url: https://github.com/zrlang/zrlang.github.io/edit/main
+issues_url: https://github.com/zrlang/zr/issues
+chat_url: https://discord.gg/zrlang
+
+# ---------------------------------------------------------------------------
+# 构建设置
+# ---------------------------------------------------------------------------
+permalink: pretty
+markdown: kramdown
+highlighter: rouge
+kramdown:
+  input: GFM
+  hard_wrap: false
+  auto_ids: true
+  footnote_nr: 1
+  entity_output: as_char
+  toc_levels: [2, 3, 4]
+  syntax_highlighter: rouge
+  syntax_highlighter_opts:
+    block:
+      line_numbers: false
+
+plugins:
+  - jekyll-sitemap
+  - jekyll-seo-tag
+  - jekyll-feed
+
+feed:
+  path: feed.xml
+
+sass:
+  style: compressed
+
+# 排除文件 / 目录
+# 注意：README.md 不能被排除 —— 它带着 `permalink: /` 的 front matter，
+# 会被 Jekyll 直接构建成站点首页，同时也是 GitHub 仓库首页文档。
+exclude:
+  - Gemfile
+  - Gemfile.lock
+  - vendor
+  - .jekyll-cache
+  - .sass-cache
+  - node_modules
+  - script
+  - .github
+
+# 集合
+collections:
+  posts:
+    output: true
+    permalink: /blog/:year/:month/:day/:title/
+
+defaults:
+  # 所有普通页面默认使用 page 布局（README.md、blog/index.md 等自带 layout 的不受影响）
+  - scope:
+      path: ""
+      type: pages
+    values:
+      layout: page
+  - scope:
+      path: ""
+      type: posts
+    values:
+      layout: post
+      author: zr Language Team
+
+# ---------------------------------------------------------------------------
+# 站点数据
+# ---------------------------------------------------------------------------
+description_short: 静态类型 · 编译型 · 系统级
+
+social:
+  - name: GitHub
+    icon: github
+    url: https://github.com/zrlang/zr
+  - name: 讨论区
+    icon: chat
+    url: https://github.com/zrlang/zr/discussions
+  - name: RSS
+    icon: rss
+    url: /feed.xml
+
+analytics: false

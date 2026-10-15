@@ -1,0 +1,33 @@
+{%- comment -%}
+左侧文档侧边栏。页面通过 front matter 的 `sidebar` 键指定分组名
+（learn / tools / community_sidebar），缺省时不渲染。
+{%- endcomment -%}
+{%- if page.sidebar -%}
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-inner">
+    {%- for group in site.data.nav[page.sidebar] -%}
+    <div class="sidebar-group">
+      <h2 class="sidebar-title">{{ group.title }}</h2>
+      <ul class="sidebar-list">
+        {%- for item in group.items -%}
+        {%- assign active = false -%}
+        {%- if page.url == item.url -%}{%- assign active = true -%}{%- endif -%}
+        <li>
+          <a href="{{ item.url | relative_url }}" class="sidebar-link{% if active %} is-active{% endif %}"
+             {% if active %}aria-current="page"{% endif %}>{{ item.title }}</a>
+        </li>
+        {%- endfor -%}
+      </ul>
+    </div>
+    {%- endfor -%}
+
+    <div class="sidebar-group sidebar-version">
+      <div class="version-box">
+        <span class="version-label">版本</span>
+        <span class="version-value">v{{ site.version }}</span>
+      </div>
+      <p class="version-note">处于 0.x 阶段，语言仍在演进。</p>
+    </div>
+  </div>
+</aside>
+{%- endif -%}

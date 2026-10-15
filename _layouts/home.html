@@ -1,0 +1,119 @@
+---
+layout: default
+---
+{%- comment -%}
+首页布局：仓库根目录的 README.md 带着 `permalink: /` 被 Jekyll 构建到站点根，
+本布局负责把它的内容分成「Hero 首屏」与「正文」两部分。
+
+README.md 中用两个 HTML 注释作为切分标记（GitHub 上不可见）：
+    <!-- hero -->   之前   -> Hero 区
+    <!-- docs -->   之后   -> 正文区
+若标记缺失，自动退化为「内容全部进入正文」，页面依旧可用。
+{%- endcomment -%}
+
+{%- assign hero_parts = content | split: '<!-- hero -->' -%}
+
+{%- if hero_parts.size > 1 -%}
+  {%- assign rest = hero_parts[1] -%}
+  {%- assign pair = rest | split: '<!-- docs -->' -%}
+  {%- if pair.size > 1 -%}
+    {%- assign hero_html = pair[0] -%}
+    {%- assign docs_html = pair[1] -%}
+  {%- else -%}
+    {%- assign hero_html = rest -%}
+    {%- assign docs_html = '' -%}
+  {%- endif -%}
+{%- else -%}
+  {%- assign hero_html = '' -%}
+  {%- assign docs_html = content -%}
+{%- endif -%}
+
+<section class="hero">
+  <div class="hero-inner">
+    <div class="hero-badge-row">
+      <span class="pill pill-release">v{{ site.version }}</span>
+      <span class="pill">静态类型</span>
+      <span class="pill">编译型</span>
+      <span class="pill">零成本抽象</span>
+      <span class="pill">无 GC</span>
+    </div>
+
+    <div class="hero-mark">
+      {%- include logo.html -%}
+    </div>
+
+    <div class="hero-copy">{{ hero_html }}</div>
+
+    <div class="hero-actions">
+      <a class="btn btn-primary btn-lg" href="{{ '/learn/getting-started/' | relative_url }}">开始学习</a>
+      <a class="btn btn-outline btn-lg" href="{{ site.repo_url }}" target="_blank" rel="noopener">GitHub</a>
+    </div>
+
+    <div class="hero-install">
+      <div class="install-tabs" data-tabs>
+        <div class="install-tabs-head" role="tablist" aria-label="安装方式">
+          <button type="button" class="install-tab is-active" role="tab" aria-selected="true" data-tab="cargo">构建编译器</button>
+          <button type="button" class="install-tab" role="tab" aria-selected="false" data-tab="hello">第一个程序</button>
+        </div>
+        <div class="install-tab-panel is-active" role="tabpanel" data-panel="cargo">
+{% highlight bash %}
+git clone {{ site.repo_url }}.git
+cd zr
+cargo build --release
+./target/release/zr --version
+{% endhighlight %}
+        </div>
+        <div class="install-tab-panel" role="tabpanel" data-panel="hello" hidden>
+{% highlight rust %}
+use io::println;
+
+fn main() -> i32 {
+    println("Hello, zr!");
+    return 0;
+}
+{% endhighlight %}
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section features" id="features">
+  <div class="container">
+    <h2 class="section-title">为什么是 zr</h2>
+    <p class="section-subtitle">
+      内存安全、显式控制、表达力 —— 通常无法同时获得的三件事，在一门语言里同时成立。
+    </p>
+    <div class="feature-grid">
+      {%- for f in site.data.features -%}
+      <a class="feature-card" href="{{ f.url | relative_url }}">
+        <span class="feature-tag">{{ f.tag }}</span>
+        <h3 class="feature-title">{{ f.title }}</h3>
+        <p class="feature-desc">{{ f.desc }}</p>
+        <span class="feature-more">了解更多 →</span>
+      </a>
+      {%- endfor -%}
+    </div>
+  </div>
+</section>
+
+<div class="container home-doc-layout">
+  <div class="home-doc">
+    <div class="prose">{{ docs_html }}</div>
+  </div>
+  <nav class="page-toc page-toc-floating" id="page-toc" aria-label="本页目录" hidden>
+    <h2 class="page-toc-title">目录</h2>
+    <ul class="page-toc-list" id="page-toc-list"></ul>
+  </nav>
+</div>
+
+<section class="section home-cta" id="cta">
+  <div class="container">
+    <h2 class="cta-title">现在就写一个 zr 程序</h2>
+    <p class="cta-sub">安装只需要一套 Rust 工具链。构建编译器、运行第一个程序，三条命令就够了。</p>
+    <div class="cta-actions">
+      <a class="btn btn-primary btn-lg" href="{{ '/learn/getting-started/' | relative_url }}">阅读安装指南</a>
+      <a class="btn btn-outline btn-lg" href="{{ '/tools/cli/' | relative_url }}">查看命令参考</a>
+    </div>
+  </div>
+</section>
