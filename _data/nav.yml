@@ -12,31 +12,8 @@ main:
     url: /community/
 
 # 左侧文档侧边栏
-learn:
-  - title: 开始
-    items:
-      - title: 简介
-        url: /learn/
-      - title: 安装与第一个程序
-        url: /learn/getting-started/
-      - title: 语法速览
-        url: /learn/syntax/
-  - title: 核心机制
-    items:
-      - title: 所有权与借用
-        url: /learn/ownership/
-      - title: 类型与 trait
-        url: /learn/types/
-      - title: 错误处理
-        url: /learn/errors/
-  - title: 进阶特性
-    items:
-      - title: 异步与协程
-        url: /learn/async/
-      - title: comptime 编译期求值
-        url: /learn/comptime/
-      - title: 嵌入式与交叉编译
-        url: /learn/embedded/
+# 教程侧边栏由 _data/chapters.yml 提供（_includes/sidebar.html 里
+# page.sidebar == 'learn' 时改用那份数据），此处不重复维护。
 
 tools:
   - title: 工具链

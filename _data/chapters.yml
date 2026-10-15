@@ -1,0 +1,109 @@
+# zr 教程章节
+#
+# status 反映「当前提交的编译器（v0.5.0）实际能不能跑」，
+# 依据是 zr 仓库的 tests/README.md —— 那里用 Rust Book 的章节顺序
+# 逐条列出了已覆盖与尚未覆盖的用例。不要凭印象改这里。
+#
+#   ready   已覆盖，测试通过
+#   partial 部分可用，细节见 tests/README.md
+#   planned 编译器尚未实现，本章是设计说明
+
+- title: 安装与第一个程序
+  url: /learn/getting-started/
+  status: ready
+  status_note: 构建编译器与交叉编译链路可用。
+  summary: 从 git clone 到把程序编译成树莓派 / wasm 映像。
+
+- title: 基础语法
+  url: /learn/01-syntax/
+  status: partial
+  status_note: >-
+    变量、标量、运算符优先级与比较、函数调用、<code>if</code>/<code>else</code> 语句与
+    分支早返回已通过测试；<code>loop</code> / <code>while</code> / <code>for</code>、
+    <code>if</code> 作为表达式、递归目前无法正确编译（回边缺 φ 节点）。
+  summary: 变量与可变性、标量与复合类型、函数、控制流。
+
+- title: 所有权系统
+  url: /learn/02-ownership/
+  status: planned
+  status_note: 借用检查与引用语义尚未实现，本章是设计说明。
+  summary: 所有权规则、引用与借用、切片。
+
+- title: 结构体与枚举
+  url: /learn/03-structs-enums/
+  status: planned
+  status_note: >-
+    <code>struct</code> 能声明但字段读取返回值不正确；<code>enum</code> 尚未实现。
+  summary: 定义与实例化、<code>impl</code> 方法、枚举、<code>Option</code>。
+
+- title: 包管理与项目
+  url: /learn/04-project/
+  status: partial
+  status_note: >-
+    标准库按需加载已落地（<code>use</code> 只拉取用到的 <code>std/*.zr</code>），
+    但模块系统仍不完整：<code>zr pkg</code> 包管理器要到 v0.7.0，跨文件依赖尚未打通。
+  summary: zr 的编译模型、模块与可见性，以及 zr pkg 的规划。
+
+- title: 集合类型
+  url: /learn/05-collections/
+  status: planned
+  status_note: <code>std</code> 中对应的模块目前仍编译不过。
+  summary: <code>Vec&lt;T&gt;</code>、<code>String</code>，以及为什么没有 <code>HashMap</code>。
+
+- title: 错误处理
+  url: /learn/06-errors/
+  status: planned
+  status_note: 断言内建与 <code>Result</code> 尚未实现。
+  summary: <code>panic</code>、<code>Result</code>、<code>?</code> 运算符。
+
+- title: 泛型、Trait 与生命周期
+  url: /learn/07-generics/
+  status: planned
+  status_note: 类型检查器尚未把类型参数绑定成类型。
+  summary: 泛型函数与类型、trait 与默认实现、trait bound、生命周期。
+
+- title: 自动化测试
+  url: /learn/08-testing/
+  status: partial
+  status_note: >-
+    <code>#[test]</code> 属性能解析但未接入运行器；目前用宿主侧运行器
+    <code>cargo test --test zr_language</code> 驱动 <code>tests/cases/*.zr</code>。
+  summary: 断言、用例组织、运行器，以及 <code>#[test]</code> 的规划。
+
+- title: 函数式编程特性
+  url: /learn/09-functional/
+  status: planned
+  status_note: 闭包尚未实现。
+  summary: 闭包、迭代器、消费器与适配器。
+
+- title: 智能指针
+  url: /learn/10-pointers/
+  status: planned
+  status_note: 智能指针尚未实现。
+  summary: <code>Box&lt;T&gt;</code>、堆分配，以及 <code>Rc</code> / <code>RefCell</code> 的缺口。
+
+- title: 并发编程
+  url: /learn/11-concurrency/
+  status: planned
+  status_note: 线程、<code>Mutex</code>、<code>Send</code> / <code>Sync</code> 尚未实现。
+  summary: zr 的一等协程、<code>async</code>/<code>await</code>、通道。
+
+- title: 面向对象特性
+  url: /learn/12-oop/
+  status: planned
+  status_note: 依赖尚未实现的 <code>trait</code> 与 <code>enum</code>。
+  summary: 封装、trait 对象、用状态模式建模。
+
+- title: 模式匹配
+  url: /learn/13-patterns/
+  status: planned
+  status_note: <code>match</code> 尚未降低到 MIR；<code>if let</code> 在 std 源码中已有使用。
+  summary: <code>match</code>、<code>if let</code>、解构、匹配守卫。
+
+- title: 高级特性
+  url: /learn/14-advanced/
+  status: planned
+  status_note: 仅 <code>asm!</code> / <code>intrinsic!</code> 能解析，代码生成尚未实现。
+  summary: >-
+    <code>unsafe</code>、裸指针、内联汇编、高级 trait、宏、<code>comptime</code>、
+    跨平台与 C 互操作。

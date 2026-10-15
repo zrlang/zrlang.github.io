@@ -54,12 +54,12 @@ zr 编译器用 Rust 编写，**不依赖任何第三方 crate**（仅标准库�
 每个阶段都可以用 `--dump-*` 单独观察：
 
 ```bash
-zr build program.zr --dump-tokens
-zr build program.zr --dump-ast
-zr build program.zr --dump-hir
-zr build program.zr --dump-mir
-zr build program.zr --dump-ssa
-zr build program.zr --dump-asm
+zr program.zr --dump-tokens
+zr program.zr --dump-ast
+zr program.zr --dump-hir
+zr program.zr --dump-mir
+zr program.zr --dump-ssa
+zr program.zr --dump-asm
 ```
 
 ## 各阶段说明
@@ -170,10 +170,14 @@ zr/
 
 ```bash
 # 看看 for 循环脱糖成什么样
-zr build examples/showcase.zr --dump-mir
+zr examples/showcase.zr --dump-mir
 
 # 看看单态化后产生了多少份代码
-zr build examples/generics_demo.zr -O2 --dump-asm
+zr examples/generics_demo.zr -O2 --dump-asm
 ```
 
 仓库里的 `examples/showcase.zr` 覆盖了大部分语法，是很好的实验素材。
+
+> **⚠️ 当前状态**：编译器仍是早期原型，循环、枚举、`match`、泛型等阶段尚未落地，
+> 完整流水线还跑不到最后。仓库 `tests/README.md` 列了逐章的阻塞原因，
+> 见[教程概览](/learn/)的实现状态。

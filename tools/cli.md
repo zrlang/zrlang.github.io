@@ -1,6 +1,6 @@
 ---
 title: 命令行参考
-description: zr 命令的全部子命令与选项：build、check、run、test、link，以及优化级别、目标三元组与各阶段 dump。
+description: zr 命令的全部选项——单文件编译模型、优化级别、目标三元组与各阶段 dump。
 sidebar: tools
 prev:
   title: 工具链
@@ -10,60 +10,61 @@ next:
   url: /tools/targets/
 ---
 
-```
-zr <COMMAND> [OPTIONS] <INPUT>
+> **⚠️ zr 没有子命令。** 实际用法是 `zr [OPTIONS] <INPUT.zr>`。
+> 本页以实际二进制的 `--help` 输出为准。仓库 README 里写的
+> `zr build` / `check` / `run` / `test` / `fmt` / `doc` / `link`
+> 是**规划**（见本页末尾），当前不可用。
 
-COMMANDS:
-  build <FILE>     编译并链接为可执行文件（默认）
-  check <FILE>     仅类型检查，不生成代码
-  run <FILE>       编译并立即运行
-  test [NAME]      运行测试
-  fmt [FILE]       格式化代码（规划中）
-  doc [FILE]       生成文档（规划中）
+## 实际用法
+
+```
+zr 0.5.0 — zr language compiler
+
+USAGE:
+    zr [OPTIONS] <INPUT.zr>
 
 OPTIONS:
-  -o, --output <FILE>     输出文件名
-  -O0..-O3, -Oz           优化级别
-  -c                      只编译不链接
-  --target <TRIPLE>       目标三元组（默认：宿主平台）
-  --wat                   输出 WebAssembly 文本（wasm32 专用）
-  --dump-tokens           dump 词法分析结果
-  --dump-ast              dump AST
-  --dump-hir              dump HIR
-  --dump-mir              dump MIR
-  --dump-ssa              dump SSA
-  --dump-asm              dump 机器码
-  --emit-llvm             输出 LLVM IR（规划中）
-  -h, --help              显示帮助
-  -V, --version           显示版本
+    -o <file>           Output file
+    -O0..-O3, -Oz       Optimization level
+    -c                  Compile only, do not link
+    --target <triple>   Target triple (default: host)
+    --wat               Emit WebAssembly text (wasm32 only)
+    --dump-tokens       Dump lexer output
+    --dump-ast          Dump AST
+    --dump-hir          Dump HIR
+    --dump-mir          Dump MIR
+    --dump-ssa          Dump SSA
+    --dump-asm          Dump assembly
+    --emit-llvm         Emit LLVM IR (future)
+    -h, --help          Show this help
+    -V, --version       Print version
 ```
 
-## build
+一次只能编译**一个** `.zr` 文件。传入多个会报：
 
-编译并链接为可执行文件。这是默认命令，`zr app.zr` 等价于 `zr build app.zr`。
+```
+zr: multiple input files not supported yet
+```
+
+`-g` / `--debug`（生成 DWARF 调试信息）在解析器里已实现，但尚未出现在 `--help` 文本中。
+
+## `-o`
+
+输出文件名。不指定时使用与输入同名的默认名：
 
 ```bash
-# 默认：产出与源文件同名的可执行文件
-zr build app.zr
-
-# 指定输出名
-zr build app.zr -o app
-
-# 优化级别
-zr build app.zr -O0 -o app      # 不优化，编译最快，保留全部调试信息
-zr build app.zr -O1 -o app      # 只做不改变语义的优化
-zr build app.zr -O2 -o app      # 默认推荐
-zr build app.zr -O3 -o app      # 展开内联、循环变换，体积换速度
-zr build app.zr -Oz -o app      # 针对体积优化
-
-# 只编译不链接
-zr build lib.zr -c -o lib.o
-
-# 链接 C 库
-zr build app.zr -lc -lm -o app
+zr app.zr -o app
 ```
 
-### 优化级别
+## `-O0` … `-O3` / `-Oz`
+
+```bash
+zr app.zr -O0 -o app      # 不优化，编译最快，保留全部调试信息
+zr app.zr -O1 -o app      # 只做不改变语义的优化
+zr app.zr -O2 -o app      # 默认推荐
+zr app.zr -O3 -o app      # 展开内联、循环变换，体积换速度
+zr app.zr -Oz -o app      # 针对体积优化
+```
 
 | 级别 | 常量折叠 | 死代码消除 | 内联 | 循环优化 | 体积 |
 |:-----|:---------|:-----------|:-----|:---------|:-----|
@@ -73,44 +74,20 @@ zr build app.zr -lc -lm -o app
 | `-O3` | ✔ | ✔ | 更激进 | 更激进 | 较小 |
 | `-Oz` | ✔ | ✔ | 按需 | ✔ | 最小 |
 
-## check
+## `-c`
 
-只做类型检查与借用检查，不生成任何文件。这是最快的反馈循环，适合放在编辑器保存钩子里：
-
-```bash
-zr check src/*.zr
-```
-
-## run
-
-编译并立即运行。适合快速验证小程序：
+只编译不链接，产出目标文件：
 
 ```bash
-zr run hello.zr
+zr lib.zr -c -o lib.o
 ```
 
-## test
+三种原生容器（ELF / Mach-O / PE-COFF）下产出的 `.o` 都是可重定位目标文件，
+可以交给平台链接器。wasm 没有可重定位对象格式，因此 `-c` 与链接等价。
 
-运行 `tests/` 目录下的语言测试：
+## `--target`
 
-```bash
-zr test                        # 全部
-zr test language_basics        # 指定测试名
-```
-
-## link
-
-链接已有的目标文件：
-
-```bash
-zr build main.zr -c -o main.o
-zr build lib.zr  -c -o lib.o
-zr link main.o lib.o -o app
-```
-
-## --target
-
-目标三元组与 Cargo 的 `--target` 命名一致：
+目标三元组与 Cargo 的 `--target` 命名一致。不指定时用宿主平台。
 
 ```bash
 zr app.zr --target aarch64-unknown-linux-gnu -o app-arm64
@@ -119,52 +96,100 @@ zr app.zr --target wasm32-unknown-unknown     -o app.wasm
 zr app.zr --target arm-none-eabi              -o app.elf
 ```
 
-完整列表见 [支持的目标平台](/tools/targets/)。
+完整列表见[支持的目标平台](/tools/targets/)。
 
-## --dump-*
+## `--wat`
 
-把编译流水线的任意中间结果打到标准输出。这是理解「编译器到底做了什么」
-最快的手段：
-
-```bash
-zr build program.zr --dump-tokens    # ① 词法：token 流与 span
-zr build program.zr --dump-ast       # ② 语法：AST（未做名称解析）
-zr build program.zr --dump-hir       # ③ 类型：HIR（名称已解析、类型已推导）
-zr build program.zr --dump-mir       # ④ 中级：基本块与终结器，控制流已脱糖
-zr build program.zr --dump-ssa       # ⑤ SSA：插入 φ 节点，寄存器重命名完成
-zr build program.zr --dump-asm       # ⑥ 后端：最终机器码
-```
-
-每一步的输入输出关系见 [编译器架构](/tools/architecture/)。
-
-## --wat
-
-`wasm32` 专用，输出 WebAssembly 文本格式而非二进制，方便人读：
+`wasm32` 专用，输出 WebAssembly **文本**格式而非二进制，方便人读与调试：
 
 ```bash
 zr app.zr --target wasm32-unknown-unknown --wat -o app.wat
 ```
 
-## -c 与 wasm
+## `--dump-*`
 
-三种原生容器（ELF / Mach-O / PE-COFF）下，`-c` 产出可重定位目标文件，
-可以交给平台链接器。wasm 没有可重定位对象格式，因此 `-c` 与链接等价。
+把编译流水线的任意中间结果打到标准输出。这是理解「编译器到底做了什么」
+最快的手段：
 
-## 环境变量
+```bash
+zr program.zr --dump-tokens    # ① 词法：token 流与 span
+zr program.zr --dump-ast       # ② 语法：AST（未做名称解析）
+zr program.zr --dump-hir       # ③ 类型：HIR（名称已解析、类型已推导）
+zr program.zr --dump-mir       # ④ 中级：基本块与终结器，控制流已脱糖
+zr program.zr --dump-ssa       # ⑤ SSA：插入 φ 节点，寄存器重命名完成
+zr program.zr --dump-asm       # ⑥ 后端：最终机器码
+```
 
-| 变量 | 作用 |
-|:-----|:-----|
-| `ZR_TARGET` | 默认目标三元组，省去每次写 `--target` |
-| `ZR_DUMP` | 默认打开某个 `--dump-*`，等价于加该选项 |
-| `ZR_LINKER` | 覆盖平台链接器（默认按目标选择 `ld` / `cc` / `lld-link`） |
-| `RUST_BACKTRACE` | 编译器自身崩溃时打印 Rust 回溯 |
+多个 `--dump-*` 可以同时给，按流水线顺序输出。
 
-## 退出码
+## `--emit-llvm`
 
-| 码 | 含义 |
-|:---|:-----|
-| `0` | 成功 |
-| `1` | 编译错误（源码有错） |
-| `2` | 命令行用法错误 |
-| `3` | 内部错误（请提 issue） |
-| 程序自身的 | 由 `main` 的返回值决定（`i32`） |
+输出 LLVM IR。标记为 `(future)` —— 当前是占位，不产生输出。
+
+## `-V` / `--version`
+
+```
+zr 0.5.0
+host: x86_64-apple-darwin (Mach-O)
+targets: arm-none-eabi, riscv32-unknown-none, riscv64-unknown-none,
+         x86_64-unknown-linux-gnu, aarch64-unknown-linux-gnu,
+         x86_64-apple-darwin, aarch64-apple-darwin,
+         x86_64-pc-windows-msvc, aarch64-pc-windows-msvc,
+         wasm32-unknown-unknown, wasm32-wasi
+```
+
+## 用 `--dump-*` 做快速检查
+
+因为没有 `zr check` 子机令，最快的类型检查循环是：
+
+```bash
+zr app.zr -c -o /dev/null
+```
+
+只编译、不链接、不落盘，适合放在编辑器保存钩子里。
+
+## 退出行为
+
+编译器成功时打印一行摘要到 stderr：
+
+```
+zr: compiled app.zr -> app (O2)
+```
+
+失败时打印诊断到 stderr 并以非零码退出。
+
+## 规划中的子命令
+
+zr 仓库 README 描述了一套更完整的 CLI。**这些都还没有实现**：
+
+| 子命令 | 作用 | 计划版本 |
+|:-------|:-----|:---------|
+| `zr build <FILE>` | 编译并链接（当前就是默认行为） | 未排期 |
+| `zr check <FILE>` | 仅类型检查 | 未排期 |
+| `zr run <FILE>` | 编译并立即运行 | 未排期 |
+| `zr test [NAME]` | 运行测试 | v0.7.0 |
+| `zr fmt [FILE]` | 格式化 | v0.7.0 |
+| `zr doc [FILE]` | 生成文档 | 未排期 |
+| `zr pkg` | 包管理（`future/zpm/` 有设计文档） | v0.7.0 |
+| `zr link` | 链接目标文件 | 未排期（当前需用平台链接器） |
+
+路线图见[路线图](/community/roadmap/)。
+
+## 现在想要 Cargo 行为怎么办
+
+**单文件**：直接 `zr app.zr -o app`。
+
+**多文件**：手动分成目标文件再链接。
+
+```bash
+zr main.zr   -c -o main.o
+zr shapes.zr -c -o shapes.o
+cc main.o shapes.o -lc -lm target/release/build/zr-*/out/libzrrt-macos_x86_64.a -o app
+```
+
+最后一步必须用平台链接器（`cc` / `clang` / `ld` / `lld-link`），
+并显式加上 zr 的运行时静态库，否则会缺 `_zr_exit` 等符号。
+
+**多依赖**：目前没有包管理器。可行做法是把所有代码写在一个 `.zr` 文件里，
+或者把稳定的第三方库按需 `use` 进来。详见
+[4. 包管理与项目](/learn/04-project/)。

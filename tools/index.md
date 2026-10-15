@@ -22,17 +22,18 @@ zr 的工具链是一个自包含的可执行文件：`zr`。它自带词法分�
 
 ## 命令概览
 
+zr 是**单文件编译器，没有子命令**：
+
 ```bash
-zr build <FILE>     # 编译并链接（默认命令）
-zr check <FILE>     # 只做类型检查，不产出文件
-zr run <FILE>       # 编译并立即运行
-zr test [NAME]      # 运行测试
-zr fmt [FILE]       # 格式化（规划中）
-zr doc [FILE]       # 生成文档（规划中）
-zr link <FILES>     # 链接已有的目标文件
+zr app.zr -o app              # 编译并链接
+zr app.zr -c -o /dev/null     # 只做检查，不产出文件
+zr app.zr --target wasm32-unknown-unknown -o app.wasm
+zr program.zr --dump-ssa      # 看中间表示
 ```
 
-完整选项见 [命令行参考](/tools/cli/)。
+zr 仓库 README 里的 `zr build` / `check` / `run` / `test` / `fmt` / `doc`
+与 `zr link` 都还是**规划**（`zr pkg`、`zr fmt` 排在 v0.7.0）。
+完整选项与规划中的子命令见[命令行参考](/tools/cli/)。
 
 ## 运行时库
 

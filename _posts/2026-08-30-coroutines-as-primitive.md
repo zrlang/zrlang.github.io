@@ -81,4 +81,4 @@ let value = await rx.recv();
 这些工作量不小。但它们本来就必须有人做 —— 与其让库去做，不如让编译器做，
 因为只有编译器知道跨挂起点之后，哪些值还活着、哪些必须被移动。
 
-详见 [异步与协程](https://zrlang.github.io/learn/async/)。
+详见 [异步与协程](https://zrlang.github.io/learn/11-concurrency/)。

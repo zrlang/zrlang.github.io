@@ -1,14 +1,60 @@
 ---
 title: 安装与第一个程序
-description: 用一条 git clone 和一条 cargo build 拿到 zr 编译器，然后编译、运行第一个程序。
+description: 用 git clone 和 cargo build 拿到 zr 编译器，然后编译、运行第一个程序。
 sidebar: learn
-prev:
-  title: 学习 zr
-  url: /learn/
+status: ready
+status_note: 构建编译器与交叉编译链路可用。
+prev: null
 next:
-  title: 语法速览
-  url: /learn/syntax/
+  title: 1. 基础语法
+  url: /learn/01-syntax/
 ---
+
+## ⚠️ 先说清楚 zr 的 CLI 长什么样
+
+zr 的命令行是**单文件编译器**，没有 Cargo 那样的子命令：
+
+```
+zr 0.5.0 — zr language compiler
+
+USAGE:
+    zr [OPTIONS] <INPUT.zr>
+
+OPTIONS:
+    -o <file>           Output file
+    -O0..-O3, -Oz       Optimization level
+    -c                  Compile only, do not link
+    --target <triple>   Target triple (default: host)
+    --wat               Emit WebAssembly text (wasm32 only)
+    --dump-tokens       Dump lexer output
+    --dump-ast          Dump AST
+    --dump-hir          Dump HIR
+    --dump-mir          Dump MIR
+    --dump-ssa          Dump SSA
+    --dump-asm          Dump assembly
+    --emit-llvm         Emit LLVM IR (future)
+    -h, --help          Show this help
+    -V, --version       Print version
+```
+
+也就是说：**没有 `zr build`、`zr run`、`zr test`、`zr new`**。
+把 `build` 当参数传进去会得到 `multiple input files not supported yet`。
+
+zr 仓库的 README 里写了一套更完整的子命令，那是**规划**（`zr fmt`、
+`zr doc`、`zr pkg` 排在 v0.7.0），当前二进制里没有。
+详见[命令行参考](/tools/cli/)。
+
+`--version` 的输出：
+
+```
+zr 0.5.0
+host: x86_64-apple-darwin (Mach-O)
+targets: arm-none-eabi, riscv32-unknown-none, riscv64-unknown-none,
+         x86_64-unknown-linux-gnu, aarch64-unknown-linux-gnu,
+         x86_64-apple-darwin, aarch64-apple-darwin,
+         x86_64-pc-windows-msvc, aarch64-pc-windows-msvc,
+         wasm32-unknown-unknown, wasm32-wasi
+```
 
 ## 环境要求
 
@@ -19,7 +65,7 @@ next:
 | 交叉编译 | 对应目标的 C 工具链（`clang` / `as` / `lld-link` / `mingw`） |
 | 嵌入式目标 | 裸机工具链（`arm-none-eabi-gcc`、`riscv64-unknown-elf-gcc`，或支持这些目标的 clang） |
 
-zr 编译器本身**不依赖运行时库**：只有编译用户程序时才会按目标链接对应的
+编译器本身**不依赖运行时库**：只有编译用户程序时才会按目标链接对应的
 `libzrrt-<平台>.a`。缺少交叉工具链时该目标会被安静跳过。
 
 ## 构建编译器
@@ -30,7 +76,7 @@ cd zr
 cargo build --release
 ```
 
-产物位于 `./target/release/zr`。把它放进 `PATH`：
+产物位于 `./target/release/zr`。放进 `PATH`：
 
 ```bash
 # Linux / macOS
@@ -44,7 +90,6 @@ $env:PATH = "$PWD\target\release;$env:PATH"
 
 ```bash
 zr --version
-# zr 0.5.0
 ```
 
 ## 第一个程序
@@ -60,62 +105,65 @@ fn main() -> i32 {
 }
 ```
 
-编译并运行：
+编译：
 
 ```bash
-zr build hello.zr -o hello
+zr hello.zr -o hello
 ./hello
-# Hello, zr!
 ```
 
-或者一步到位：
+标准库是**按需加载**的：`use io::println` 会让编译器去 `std/io.zr`
+找 `io` 模块并把它并进当前编译单元。所以第一次运行前请确认 `std/` 目录
+与 `zr` 可执行文件在同一份仓库里。
 
-```bash
-zr run hello.zr
-```
+> **⚠️ 现状**：`std/` 里目前还有模块编译不过（`mem.zr` 等），
+> 因此带 `use` 的程序暂时可能失败。这是仓库 `tests/README.md` 里
+> 记着的已知问题，见[教程概览](/learn/)的实现状态。
 
 ## `main` 的约定
 
-zr 的 `main` 返回 `i32`，作为进程的退出码：
+`main` 返回 `i32`，作为进程退出码：
 
 ```rust
-use io::{println, print_int};
-
 fn main() -> i32 {
-    let args_ok = 1;
-    if args_ok == 0 {
+    if failed() {
         return 1;             // 非零退出码
     }
-    println("ok");
     return 0;
 }
 ```
 
 不同目标的启动方式略有差别，但都符合平台惯例：
 
-- **Linux** —— `_start` 直接用系统调用退出进程。
-- **macOS / Windows** —— `_start` 调用运行时的 `zr_exit`，分别转发到 libc 与 `ExitProcess`。
-- **裸机（ARM / RISC-V）** —— `_start` 调用 `main` 之后停在自循环，没有「退出进程」的概念。
+| 目标 | `_start` 的行为 |
+|:-----|:----------------|
+| Linux | 直接用系统调用退出进程（不依赖 C 运行时） |
+| macOS | 调用运行时的 `zr_exit`，转发到 libc |
+| Windows | 调用运行时的 `zr_exit`，转发到 `ExitProcess` |
+| 裸机 ARM / RISC-V | 调用 `main` 后停在自循环（没有「退出进程」的概念） |
 
 ## 常用的编译命令
 
 ```bash
-# 编译并链接为可执行文件
-zr build app.zr -o app
+# 编译并链接（这就是全部，没有 build 子命令）
+zr app.zr -o app
 
-# 指定优化级别
-zr build app.zr -O2 -o app
+# 优化级别
+zr app.zr -O0 -o app      # 不优化，编译最快
+zr app.zr -O2 -o app      # 默认推荐
+zr app.zr -O3 -o app      # 更激进的内联与循环变换
+zr app.zr -Oz -o app      # 针对体积
 
 # 只编译不链接，产出目标文件
-zr build lib.zr -c -o lib.o
+zr lib.zr -c -o lib.o
 
-# 链接多个目标文件与 C 库
-zr build main.zr -c -o main.o
-zr build lib.zr  -c -o lib.o
-zr link main.o lib.o -lc -lm -o app
+# 链接多个目标文件、C 库与 zr 运行时
+zr main.zr -c -o main.o
+zr lib.zr  -c -o lib.o
+cc main.o lib.o -lc -lm target/release/build/zr-*/out/libzrrt-macos_x86_64.a -o app
 
-# 仅做类型检查，不产出任何文件（最快的反馈循环）
-zr check app.zr
+# 只做语法/类型检查，不产出文件
+zr check.zr -c -o /dev/null
 ```
 
 ## 交叉编译
@@ -128,34 +176,47 @@ zr app.zr --target aarch64-apple-darwin       -o app-macos-arm64
 zr app.zr --target x86_64-pc-windows-msvc     -o app.exe
 zr app.zr --target wasm32-unknown-unknown     -o app.wasm
 zr app.zr --target wasm32-unknown-unknown --wat -o app.wat   # 人类可读的 wasm
-zr app.zr --target arm-none-eabi              -o app.elf    # 可直接烧录的固件
+zr app.zr --target arm-none-eabi              -o app.elf     # 可直接烧录的固件
 ```
+
+裸机目标直接产出可烧录的 ELF 映像，**不需要链接器**。
+完整的 11 个目标矩阵见[支持的目标平台](/tools/targets/)。
 
 ## 看一眼编译过程
 
 调试时可以把任意中间表示打出来：
 
 ```bash
-zr build program.zr --dump-tokens    # 词法分析结果
-zr build program.zr --dump-ast       # 抽象语法树
-zr build program.zr --dump-hir       # 高层中间表示
-zr build program.zr --dump-mir       # 中级表示（含基本块）
-zr build program.zr --dump-ssa       # 静态单赋值形式
-zr build program.zr --dump-asm       # 最终机器码
+zr program.zr --dump-tokens    # ① 词法分析结果
+zr program.zr --dump-ast       # ② AST
+zr program.zr --dump-hir       # ③ HIR（类型已推导、所有权已标注）
+zr program.zr --dump-mir       # ④ MIR（基本块与终结器，控制流已脱糖）
+zr program.zr --dump-ssa       # ⑤ SSA（φ 节点已插入）
+zr program.zr --dump-asm       # ⑥ 最终机器码
 ```
 
-## 运行测试套件
+这也是学 zr 最好的方式：想知道 `match` 脱糖成什么样、`comptime` 在哪一步
+被求值，`dump` 一下就知道了。见[编译器架构](/tools/architecture/)。
 
-仓库自带语言测试：
+## 跑语言测试
+
+zr 的测试是自检式 `.zr` 程序，由宿主侧运行器驱动：
 
 ```bash
-zr test                        # 运行 tests/ 下所有测试
-zr test language_basics        # 运行指定测试
-cargo test                     # 运行编译器自身的 Rust 单元测试
+# 跑 tests/cases/*.zr
+cargo test --test zr_language
+
+# 或者单独编译一个用例
+zr tests/cases/01_variables.zr -o /tmp/t1 && /tmp/t1
+
+# 编译器自身的 Rust 单元测试
+cargo test
 ```
+
+详见 [8. 自动化测试](/learn/08-testing/)。
 
 ## 下一步
 
-- 快速浏览全部语法 → [语法速览](/learn/syntax/)
-- 把第一个程序编译到树莓派或 WebAssembly → [嵌入式与交叉编译](/learn/embedded/)
-- 查看完整命令列表 → [命令行参考](/tools/cli/)
+- [1. 基础语法](/learn/01-syntax/) —— 变量、函数、控制流
+- [4. 包管理与项目](/learn/04-project/) —— zr 的编译模型与模块系统
+- [命令行参考](/tools/cli/) —— 全部选项

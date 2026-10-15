@@ -9,6 +9,11 @@ next: null
 zr 的标准库**完全用 zr 自身编写**，通过 `extern "C"` 链接系统调用。
 每个模块都可以单独阅读，理解它也能帮你理解语言本身。
 
+> **⚠️ 当前状态**：`std/` 里目前还有模块编译不过（例如 `mem.zr`），
+> 因此带 `use` 的程序暂时可能失败。见[教程概览](/learn/)的实现状态。
+> 编译器对标准库采用**按需加载**：写了 `use io::println` 才去 `std/io.zr`
+> 加载 `io`，并递归处理它自己的 `use`；没用到的模块不会被编译。
+
 ```
 std/
 ├── core.zr         // 基础类型：Option / Result / trait / panic / 数值工具
@@ -57,10 +62,17 @@ use std::core::{
 内存管理原语：
 
 ```rust
-use std::mem::{alloc, dealloc, Layout, memcpy, memmove, size_of, align_of};
+use std::mem::{
+    alloc, dealloc, Layout, Allocator, SystemAllocator,
+    memset, memcpy, memmove, memcmp, memswap,
+    transmute, zeroed, forget, drop,
+    size_of, align_of, box_new, box_free,
+    Slice, SliceMut, NULL, is_null, offset,
+};
 ```
 
-`Layout` 把「大小 + 对齐」打包成一个值，`alloc` 返回与之匹配的指针：
+`Layout` 把「大小 + 对齐」打包成一个值，`alloc` 返回与之匹配的指针，
+分配与释放必须用同一份 `Layout`：
 
 ```rust
 let layout = Layout::new::<i32>();
@@ -68,18 +80,34 @@ let p = alloc(layout);
 dealloc(p, layout);
 ```
 
+`Allocator` trait 与 `SystemAllocator` 让全局分配器可以被替换。
+
 ## std::io
 
 格式化输出与缓冲写入：
 
 ```rust
 use std::io::{
-    println, print, eprintln,        // 打印
-    print_int, print_uint, print_float,
-    print_bool, print_char, print_fmt,
-    BufWriter,                        // 缓冲写入
-    write_bytes, write_byte,
+    println, print, eprintln,          // 打印
+    println_int, println_uint, print_int, print_uint,
+    println_char, print_char,
+    print_bool, eprint, print_hex_int,
+    print_fmt, FormatArg,              // 格式化
+    BufWriter,                          // 缓冲写入
+    write_bytes, write_byte, write_char,
+    write_hex, write_cstr,
+    exit,
 };
+```
+
+zr 没有 `println!` / `format!` 宏，格式化输出走 `print_fmt`：
+
+```rust
+use io::{print_fmt, FormatArg};
+
+print_fmt("{} + {} = {}\n", &[
+    FormatArg::Int(40), FormatArg::Int(2), FormatArg::Int(42)
+]);
 ```
 
 注意 zr 的 IO 是**显式函数**而不是方法链 —— `println(x)` 而不是 `x.println()`，
@@ -106,14 +134,25 @@ let found = s.find_byte(b'x');
 
 ## std::slice
 
-切片工具与迭代器：
+切片上的自由函数、迭代器与区间：
 
 ```rust
-use std::slice::{Slice, Iter};
+use std::slice::{len, is_empty, first, last, get, index_of, contains};
+use std::slice::{reverse, copy, fill, sort, binary_search};
+use std::slice::{map, filter, fold, sum, max, min, reduce, any, all, find};
+use std::slice::{SliceIter, Range, range_step};
+```
 
-fn sum(values: []const i32) -> i32 {
-    return values.iter().fold(0, |acc, x| acc + x);
-}
+注意切片上的长度用 `s.len`（**不带括号**，它是切片自身的字段），
+而 `Vec` / `String` 的 `len()` 是方法。`Slice` 与 `SliceMut` 这两个视图类型
+定义在 `std::mem` 里，不在 `std::slice` 里。
+
+高阶函数的参数是**函数指针**而不是闭包（闭包尚未实现）：
+
+```rust
+pub fn map<T, U>(s: []const T, f: fn(T) -> U) -> []U
+pub fn filter<T: Copy>(s: []const T, pred: fn(T) -> bool) -> []T
+pub fn fold<T, Acc>(s: []const T, init: Acc, f: fn(Acc, T) -> Acc) -> Acc
 ```
 
 ## std::collections
@@ -139,19 +178,21 @@ v.sort();
 
 ```rust
 use std::async::{
-    Executor, Task,
-    spawn, yield_now, sleep,
-    channel, Sender, Receiver,
-    join, race, try_join_all,
+    Future, Poll, Ready, ready,
+    Executor, Task, TaskState,
+    spawn, run_all, yield_now, now_ms,
+    channel, Channel, Sender, Receiver,
+    Join2, Race, Wake, Waker, Context,
 };
 
 let mut ex = Executor::new();
-ex.spawn(worker_task());
+ex.spawn(worker_frame());
 ex.block_on(main_future());
 ex.run();
 ```
 
-组合子说明见 [异步与协程](/learn/async/)。
+`Channel` 提供 `send` / `recv` / `len` / `is_empty`；
+`Join2` 与 `Race` 是组合子。说明见 [异步与协程](/learn/11-concurrency/)。
 
 ## std::error
 
@@ -165,14 +206,21 @@ use std::error::{
 };
 ```
 
-说明见 [错误处理](/learn/errors/)。
+说明见 [错误处理](/learn/06-errors/)。
 
 ## std::net
 
 套接字封装（TCP / UDP）：
 
 ```rust
-use std::net::{TcpListener, TcpStream, SocketAddr};
+use std::net::{
+    TcpListener, TcpStream, UdpSocket, Socket, SocketAddr,
+    AddrFamily, Ipv4Addr, Ipv6Addr,
+    HttpMethod, HttpStatus, HttpResponse, HttpHeader,
+    http_get, http_request, tcp_connect, fetch,
+    lookup_host, parse_ipv4, parse_ipv6, parse_socket_addr,
+    NetError,
+};
 
 async fn serve(addr: SocketAddr) -> Result<(), IoError> {
     let listener = TcpListener::bind(addr)?;
@@ -188,13 +236,15 @@ async fn serve(addr: SocketAddr) -> Result<(), IoError> {
 SIMD 内建，用于数据密集型循环：
 
 ```rust
-use std::simd::{Simd, lane_count};
+use std::simd::{f32x4, i32x4, f64x2, i8x8};
 
 // 一次处理 4 个 i32
-let a = Simd::splat(3);
-let b = Simd::load(&data);
-return (a * b).store(&mut out);
+let a = i32x4::from_array([1, 2, 3, 4]);
+let b = i32x4::from_array([5, 6, 7, 8]);
+let out = (a + b).to_array();
 ```
+
+`#[repr(simd)]` 可以要求向量布局。
 
 ## 自举
 

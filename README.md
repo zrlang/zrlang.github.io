@@ -21,6 +21,25 @@ permalink: /
 
 <!-- docs -->
 
+## 先读这一段：项目状态
+
+zr 目前是 **v0.5.0 早期原型**。它的**前端设计已经完整**（标准库 3900 行全部用 zr 写，
+覆盖 11 个目标平台），但**代码生成还差很远**：仓库的 `tests/README.md` 记录，
+按 Rust Book 顺序组织的测试用例目前只覆盖了 8 个 —— 循环不终止（缺 φ 节点）、
+递归坏栈帧、借用/引用/切片未实现、`enum` 未实现、`match` 未降到 MIR、
+泛型/闭包/线程未实现。
+
+当前真正能跑通的是：**变量、算术、函数调用、`if`/`else` 分支早返回**。
+
+```bash
+# 编译一个当前可用的程序
+zr hello.zr -o hello
+```
+
+[教程](/learn/)的 14 章按 Rust Book 顺序写全了**语言设计**，
+每章顶部标注了真实实现状态，不会让你以为示例能编译。
+开发计划见[路线图](https://zrlang.github.io/community/roadmap/)。
+
 ## zr 是什么
 
 zr 是一门**静态类型、编译型、系统级**编程语言。它不打算在所有维度上都做妥协：
@@ -47,7 +66,7 @@ fn main() -> i32 {
 ```
 
 ```bash
-zr build hello.zr -o hello
+zr hello.zr -o hello
 $ ./hello
 Hello, zr!
 ```
@@ -218,27 +237,34 @@ zr app.zr --target arm-none-eabi -o app.elf      # 直接产出可烧录映像
 
 ## 工具链
 
-```
-zr <COMMAND> [OPTIONS] <INPUT>
+zr 是**单文件编译器，没有子命令**：
 
-COMMANDS:
-  build <FILE>     编译并链接为可执行文件（默认）
-  check <FILE>     仅类型检查，不生成代码
-  run <FILE>       编译并立即运行
-  test [NAME]      运行测试
-  fmt / doc        格式化 / 生成文档（规划中）
+```
+zr 0.5.0 — zr language compiler
+
+USAGE:
+    zr [OPTIONS] <INPUT.zr>
 
 OPTIONS:
-  -o, --output <FILE>     输出文件名
-  -O0..-O3, -Oz           优化级别
-  -c                      只编译不链接
-  --target <TRIPLE>       目标三元组
-  --wat                   输出 WebAssembly 文本
-  --dump-ast / --dump-hir / --dump-mir / --dump-ssa / --dump-asm
+    -o <file>           Output file
+    -O0..-O3, -Oz       Optimization level
+    -c                  Compile only, do not link
+    --target <triple>   Target triple (default: host)
+    --wat               Emit WebAssembly text (wasm32 only)
+    --dump-tokens / --dump-ast / --dump-hir
+    --dump-mir / --dump-ssa / --dump-asm
+    --emit-llvm         Emit LLVM IR (future)
 ```
 
-详见 [命令行参考](https://zrlang.github.io/tools/cli/)。
+仓库 README 里写的 `zr build` / `check` / `run` / `test` / `fmt` / `doc` 与
+`zr link` 都还是**规划**。完整选项与规划中的子命令见[命令行参考](https://zrlang.github.io/tools/cli/)。
 
+```bash
+zr app.zr -o app                                    # 编译并链接
+zr app.zr -c -o /dev/null                           # 只检查不产出
+zr app.zr --target wasm32-unknown-unknown --wat -o app.wat
+zr app.zr --target arm-none-eabi -o app.elf
+```
 
 ## 与同类语言的对比
 
@@ -267,21 +293,43 @@ OPTIONS:
 
 ## 继续阅读
 
+[教程](https://zrlang.github.io/learn/)按《Rust 程序设计语言》的章节顺序组织，共 14 章，
+每章顶部标注了当前编译器的实现状态。
+
+| 章 | 内容 | 状态 |
+|:---|:-----|:-----|
+| [安装与第一个程序](https://zrlang.github.io/learn/getting-started/) | 构建编译器、交叉编译 | ● 已通过测试 |
+| [1. 基础语法](https://zrlang.github.io/learn/01-syntax/) | 变量、类型、函数、控制流 | ◐ 部分可用 |
+| [2. 所有权系统](https://zrlang.github.io/learn/02-ownership/) | 所有权、借用、切片 | ○ 尚未实现 |
+| [3. 结构体与枚举](https://zrlang.github.io/learn/03-structs-enums/) | `struct`、`impl`、`enum`、`Option` | ○ 尚未实现 |
+| [4. 包管理与项目](https://zrlang.github.io/learn/04-project/) | 编译模型、模块、`zr pkg` 规划 | ◐ 部分可用 |
+| [5. 集合类型](https://zrlang.github.io/learn/05-collections/) | `Vec<T>`、`String` | ○ 尚未实现 |
+| [6. 错误处理](https://zrlang.github.io/learn/06-errors/) | `panic`、`Result`、`?` | ○ 尚未实现 |
+| [7. 泛型、Trait 与生命周期](https://zrlang.github.io/learn/07-generics/) | 泛型、trait、生命周期 | ○ 尚未实现 |
+| [8. 自动化测试](https://zrlang.github.io/learn/08-testing/) | 断言、用例、运行器 | ◐ 部分可用 |
+| [9. 函数式编程特性](https://zrlang.github.io/learn/09-functional/) | 闭包、迭代器、适配器 | ○ 尚未实现 |
+| [10. 智能指针](https://zrlang.github.io/learn/10-pointers/) | `Box<T>`、堆分配 | ○ 尚未实现 |
+| [11. 并发编程](https://zrlang.github.io/learn/11-concurrency/) | 协程、`async`、通道 | ○ 尚未实现 |
+| [12. 面向对象特性](https://zrlang.github.io/learn/12-oop/) | 封装、trait 对象、状态模式 | ○ 尚未实现 |
+| [13. 模式匹配](https://zrlang.github.io/learn/13-patterns/) | `match`、`if let`、解构 | ○ 尚未实现 |
+| [14. 高级特性](https://zrlang.github.io/learn/14-advanced/) | `unsafe`、宏、`comptime`、FFI | ○ 尚未实现 |
+
+● 已通过测试　◐ 部分可用　○ 尚未实现
+
+其他入口：
+
 | 我想…… | 去这里 |
 |:-------|:-------|
-| 从零开始写第一个程序 | [安装与第一个程序](https://zrlang.github.io/learn/getting-started/) |
-| 快速浏览全部语法 | [语法速览](https://zrlang.github.io/learn/syntax/) |
-| 理解所有权与借用规则 | [所有权与借用](https://zrlang.github.io/learn/ownership/) |
-| 了解类型系统与 trait 求解 | [类型与 trait](https://zrlang.github.io/learn/types/) |
-| 写并发 / 网络程序 | [异步与协程](https://zrlang.github.io/learn/async/) |
-| 做编译期元编程 | [comptime 编译期求值](https://zrlang.github.io/learn/comptime/) |
-| 给嵌入式设备编译固件 | [嵌入式与交叉编译](https://zrlang.github.io/learn/embedded/) |
 | 读懂编译器源码 | [编译器架构](https://zrlang.github.io/tools/architecture/) |
+| 知道支持哪些平台 | [支持的目标平台](https://zrlang.github.io/tools/targets/) |
 | 浏览标准库 | [标准库](https://zrlang.github.io/std/) |
+| 看版本发布与设计随笔 | [博客](https://zrlang.github.io/blog/) |
 | 参与开发 | [贡献指南](https://zrlang.github.io/community/contributing/) |
 
-
 ## 示例程序
+
+下面三段是这门语言最终的样子，其中**目前只有第 1 段的一部分能编译**
+（`while` 依赖尚未实现的 φ 节点）。它们来自 zr 仓库的 `examples/`。
 
 ### FizzBuzz
 

@@ -887,6 +887,102 @@ hr {
   color: var(--fg-faint);
 }
 
+/* 实现状态提示条（每章顶部） */
+.status-note {
+  margin-top: var(--sp-5);
+  padding: var(--sp-4) var(--sp-5);
+  border: 1px solid var(--border);
+  border-left-width: 3px;
+  border-radius: 0 var(--radius) var(--radius) 0;
+  background: var(--bg-alt);
+  font-size: var(--fs-base);
+}
+
+.status-note.status-ready {
+  border-left-color: #2ea043;
+}
+
+.status-note.status-partial {
+  border-left-color: #d29922;
+}
+
+.status-note.status-planned {
+  border-left-color: var(--accent);
+}
+
+.status-head {
+  margin: 0 0 var(--sp-2);
+  font-weight: 700;
+  color: var(--fg-strong);
+}
+
+.status-ready .status-head::before {
+  content: "● ";
+  color: #2ea043;
+}
+
+.status-partial .status-head::before {
+  content: "◐ ";
+  color: #d29922;
+}
+
+.status-planned .status-head::before {
+  content: "○ ";
+  color: var(--accent);
+}
+
+.status-body {
+  margin: 0 0 var(--sp-2);
+  color: var(--fg-muted);
+}
+
+.status-body :last-child {
+  margin-bottom: 0;
+}
+
+.status-foot {
+  margin: 0;
+  font-size: var(--fs-sm);
+  color: var(--fg-faint);
+}
+
+/* 侧边栏状态圆点 */
+.dot {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  vertical-align: middle;
+}
+
+.dot-ok {
+  background: #2ea043;
+}
+
+.dot-warn {
+  background: #d29922;
+}
+
+.dot-plan {
+  background: var(--fg-faint);
+}
+
+.legend-list {
+  list-style: none;
+  margin: 0;
+  padding: 0 var(--sp-3);
+  font-size: var(--fs-xs);
+  color: var(--fg-faint);
+}
+
+.legend-list li {
+  margin-bottom: var(--sp-1);
+}
+
+.sidebar-legend {
+  margin-top: var(--sp-5);
+}
+
 /* 右侧本页目录 */
 .page-toc {
   position: sticky;

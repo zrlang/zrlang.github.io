@@ -2,25 +2,25 @@
 - title: 内存安全
   icon: shield
   desc: 所有权 + 借用 + 生命周期三重机制，在编译期杜绝 use-after-free 与数据竞争，运行时零开销。
-  url: /learn/ownership/
+  url: /learn/02-ownership/
   tag: Ownership
 
 - title: 零成本抽象
   icon: bolt
   desc: 泛型单态化、trait 约束静态求解。高层抽象在编译期完全消除，产物等同手写 C。
-  url: /learn/types/
+  url: /learn/07-generics/
   tag: Zero-cost
 
 - title: 一等协程
   icon: async
   desc: 协程与 async/await 是语言原语而非库胶水，配合通道（channel）表达无数据竞争的并发。
-  url: /learn/async/
+  url: /learn/11-concurrency/
   tag: Async
 
 - title: comptime
   icon: clock
   desc: 编译期求值与类型反射，让泛型特化、编译期配置与代码生成成为语言的一部分。
-  url: /learn/comptime/
+  url: /learn/14-advanced/
   tag: CTFE
 
 - title: 跨平台
@@ -32,5 +32,5 @@
 - title: C 互操作
   icon: link
   desc: C ABI 兼容，可直接声明并链接任意 C 库与系统调用 —— 不是取代 C，而是更好地使用 C。
-  url: /learn/embedded/
+  url: /learn/10-pointers/
   tag: FFI

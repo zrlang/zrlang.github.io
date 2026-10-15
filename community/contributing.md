@@ -40,14 +40,13 @@ fn main() -> i32 {
 EOF
 
 # 2. 用 dump 看编译器的每一步
-./target/debug/zr build /tmp/demo.zr --dump-ast
-./target/debug/zr build /tmp/demo.zr --dump-mir
-./target/debug/zr build /tmp/demo.zr --dump-ssa
-./target/debug/zr build /tmp/demo.zr --dump-asm
+./target/debug/zr /tmp/demo.zr --dump-ast
+./target/debug/zr /tmp/demo.zr --dump-mir
+./target/debug/zr /tmp/demo.zr --dump-ssa
+./target/debug/zr /tmp/demo.zr --dump-asm
 
-# 3. 跑语言测试
-./target/debug/zr test tests/language_basics.zr
-./target/debug/zr test
+# 3. 跑语言测试（宿主侧运行器）
+cargo test --test zr_language
 ```
 
 调试前端问题时，`--dump-*` 几乎总是最快的切入点 —— 你能直接看到是哪一步把

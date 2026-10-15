@@ -22,6 +22,22 @@ layout: default
       {%- if page.description -%}
       <p class="doc-description">{{ page.description }}</p>
       {%- endif -%}
+
+      {%- if page.status -%}
+      {%- assign st = page.status -%}
+      <div class="status-note status-{{ st }}">
+        <p class="status-head">
+          {%- if st == 'ready' %}本章内容已通过语言测试
+          {%- elsif st == 'partial' %}本章内容部分可用
+          {%- else %}本章特性尚未实现{% endif -%}
+        </p>
+        <p class="status-body">{{ page.status_note }}</p>
+        <p class="status-foot">
+          状态依据 zr 仓库的 <a href="https://github.com/zrlang/zr/blob/main/tests/README.md" target="_blank" rel="noopener">tests/README.md</a>。
+          标注「尚未实现」不代表设计被否定，只代表当前编译器还不能编译它。
+        </p>
+      </div>
+      {%- endif -%}
     </header>
     {%- endif -%}
 
