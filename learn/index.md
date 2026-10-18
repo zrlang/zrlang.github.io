@@ -11,14 +11,17 @@ next:
 zr 教程按《Rust 程序设计语言》（The Rust Book）的章节顺序组织，14 章，
 从变量与函数一路走到 `unsafe`、宏与跨平台。
 
-> **请先读这一段。** zr 编译器目前处于 **v0.5.0 早期原型**阶段。
-> 它的**前端设计已经完整**（标准库 3900 行全部用 zr 写，覆盖 11 个目标平台），
-> 但**代码生成还差很远**：仓库的 `tests/README.md` 明确写着，按 Rust Book
-> 顺序组织的测试用例目前只覆盖了 8 个，循环、递归、借用、枚举、`match`、
-> 泛型、闭包、线程等章节「一个都测不了」。
+> **请先读这一段。** zr 编译器正在快速推进。**v0.6.0 里程碑已经全部完成**，
+> 语言测试用例从最早的 8 个增加到 **25 个**：变量、标量、浮点、函数、递归、
+> 全部循环、`if`/`else` 作为表达式、`match` 脱糖语义、`comptime`、`as` 转换、
+> 指针与 `.rodata` 字符串都能编译并正确运行（在 `-O0` 到 `-Oz` 各验证一遍）。
 >
-> 所以本教程的定位是：**这是语言的设计说明，不是当前可用功能的清单。**
-> 每章顶部都标注了真实状态，标注为「尚未实现」的章节不要指望代码能跑。
+> 但**语言层面的大块还没动**：所有权与借用、结构体字段与枚举、切片、
+> `Vec`/`String`、`Result`、泛型/trait、闭包、线程。
+>
+> 所以本教程的定位是：**14 章写全了语言设计，每章顶部标注了真实实现状态。**
+> 标注为「尚未实现」的章节不要指望代码能跑。完整进展见
+> [项目进展](/community/roadmap/)。
 
 ## 开始之前
 
@@ -35,41 +38,50 @@ zr 教程按《Rust 程序设计语言》（The Rust Book）的章节顺序组�
 
 | 章节 | 内容 | 状态 |
 |:-----|:-----|:-----|
-| [安装与第一个程序](/learn/getting-started/) | 构建编译器、交叉编译 | ● 已通过测试 |
-| [1. 基础语法](/learn/01-syntax/) | 变量、标量、函数、`if`/`else` | ◐ 部分可用 |
+| [安装与第一个程序](/learn/getting-started/) | 构建编译器、编译与运行、交叉编译 | ● 已通过测试 |
+| [1. 基础语法](/learn/01-syntax/) | 变量、标量与浮点、函数、递归、循环 | ◐ 仅缺 `for` |
 | [2. 所有权系统](/learn/02-ownership/) | 所有权、借用、切片 | ○ 尚未实现 |
 | [3. 结构体与枚举](/learn/03-structs-enums/) | `struct`、`impl`、`enum`、`Option` | ○ 尚未实现 |
-| [4. 包管理与项目](/learn/04-project/) | 编译模型、模块、`zr pkg` 规划 | ◐ 部分可用 |
+| [4. 包管理与项目](/learn/04-project/) | `zr pkg` / `fmt` / `lsp`、增量编译 | ◐ 路径依赖 |
 | [5. 集合类型](/learn/05-collections/) | `Vec<T>`、`String` | ○ 尚未实现 |
 | [6. 错误处理](/learn/06-errors/) | `panic`、`Result`、`?` | ○ 尚未实现 |
 | [7. 泛型、Trait 与生命周期](/learn/07-generics/) | 泛型、trait、生命周期 | ○ 尚未实现 |
-| [8. 自动化测试](/learn/08-testing/) | 断言、用例、运行器 | ◐ 部分可用 |
+| [8. 自动化测试](/learn/08-testing/) | 断言、25 个用例、跨优化等级运行器 | ◐ 无 `zr test` |
 | [9. 函数式编程特性](/learn/09-functional/) | 闭包、迭代器、适配器 | ○ 尚未实现 |
-| [10. 智能指针](/learn/10-pointers/) | `Box`、堆分配 | ○ 尚未实现 |
+| [10. 智能指针](/learn/10-pointers/) | 指针、内存模型、栈槽 | ◐ 无 `Box`/`Rc` |
 | [11. 并发编程](/learn/11-concurrency/) | 协程、`async`、通道 | ○ 尚未实现 |
 | [12. 面向对象特性](/learn/12-oop/) | 封装、trait 对象、状态模式 | ○ 尚未实现 |
-| [13. 模式匹配](/learn/13-patterns/) | `match`、`if let`、解构 | ○ 尚未实现 |
-| [14. 高级特性](/learn/14-advanced/) | `unsafe`、宏、`comptime`、FFI | ○ 尚未实现 |
+| [13. 模式匹配](/learn/13-patterns/) | `match` 脱糖、绑定臂、守卫 | ◐ 仅字面量类 |
+| [14. 高级特性](/learn/14-advanced/) | `comptime`、属性、FFI、跨平台 | ◐ 无宏/asm |
 
 ● 已通过测试　◐ 部分可用　○ 尚未实现
 
 ### 已经能跑的部分
 
-`tests/cases/` 里目前通过的全部内容：
+`tests/cases/` 下 25 个用例覆盖的内容：
 
-| 用例 | 内容 |
+| 领域 | 用例 |
 |:-----|:-----|
-| `01_variables.zr` | 变量与可变性：`let` / `mut` / shadowing |
-| `02_scalars.zr` | 数据类型：整数标量与 `+ - * / %` |
-| `03_precedence.zr` | 运算符：优先级、括号、结合性 |
-| `04_comparisons.zr` | 运算符：`== != > >=` |
-| `05_logic.zr` | 运算符：布尔字面量、`!` `\|\|` |
-| `06_functions.zr` | 函数：定义、参数、返回值、嵌套调用 |
-| `07_control_flow.zr` | 控制流：`if` / `else`、分支早返回 |
-| `08_three_args.zr` | 函数：三参数调用（寄存器分配） |
+| 变量与标量 | `01_variables`、`02_scalars`、`03_precedence`、`04_comparisons`、`05_logic`、`13_casts`、`21_literal_suffixes` |
+| 函数 | `06_functions`、`08_three_args`、`22_call_preserve` |
+| 控制流 | `07_control_flow`、`09_while`、`10_if_expression`、`11_if_else_chain`、`15_loops`、`17_loop_break` |
+| 编译期求值 | `12_comptime`、`16_comptime_fn` |
+| 浮点 | `19_float`、`20_f32` |
+| 寄存器溢出 | `14_spill`、`18_spill_ops` |
+| 字符串与指针 | `23_strings`、`24_pointers` |
+| 模式匹配 | `25_match`（脱糖成 if/else 链） |
 
-也就是说：**变量、算术、函数调用、早返回**。循环都还不工作
-（MIR → SSA 缺 φ 节点，回边读到旧值导致不终止）。
+也就是说：**变量、算术、浮点、函数调用、递归、循环、`if`/`else` 表达式、
+`match` 字面量模式、`comptime`、`as` 转换、指针与字符串字面量**。
+
+还不能用：`for`、所有权与借用、结构体字段与枚举、切片、集合、
+`Result`、泛型/trait、闭包、线程。
+
+跑一遍：
+
+```bash
+cargo test --test zr_language
+```
 
 ### 为什么教程比编译器走得更远
 
@@ -93,28 +105,6 @@ zr 教程按《Rust 程序设计语言》（The Rust Book）的章节顺序组�
 | 5 | **工具链即语言的一部分** —— 编译器、格式化器、文档生成器、包管理器是同一整体 |
 | 6 | **与 C 共存** —— 不是取代 C，而是更好地使用 C |
 
-## 三分钟版本
-
-```rust
-use io::{println, println_int};
-
-fn main() -> i32 {
-    let mut total = 0;
-    let mut i = 1;
-    while i <= 100 {
-        if i % 15 == 0 { println("FizzBuzz"); }
-        else if i % 3 == 0 { println("Fizz"); }
-        else if i % 5 == 0 { println("Buzz"); }
-        else { println_int(i); }
-        i += 1;
-    }
-    return total;
-}
-```
-
-这段代码**现在编译不过**（`while` 依赖尚未实现的 φ 节点），
-但它是这门语言最终的样子。
-
 ## 和 Rust 的关键差异
 
 | 方面 | Rust | zr |
@@ -122,15 +112,43 @@ fn main() -> i32 {
 | 可变绑定 | `let mut` | `let mut`（README 写的 `var` 尚未实现） |
 | 尾表达式返回 | 支持 | 必须显式 `return` |
 | 并发模型 | 线程 + `Future` | **只有协程**，没有线程 |
-| 包管理 | Cargo + crates.io | 无（`zr pkg` 排在 v0.7.0） |
-| 哈希表 | `HashMap` | 无，用 `Vec<(K, V)>` |
+| 包管理 | Cargo + crates.io | `zr pkg`，目前只有路径依赖 |
+| 格式化 / LSP | rustfmt / rust-analyzer | `zr fmt` / `zr lsp` |
+| 哈希表 | `HashMap` | 无，用 `Vec<(K, V)>` 替代 |
 | 内部可变性 | `Rc<RefCell<T>>` | 无 |
 | 标准库 | 编译进 `rustc` | **用 zr 自己写**，按需加载 |
 | 后端 | LLVM（默认） | **自研**，不依赖 LLVM |
 | 隐式转换 | 有限（`From`/`Into`） | 只有显式 `as` |
 
+## 三分钟版本（这段现在能编译）
+
+```rust
+fn fib(n: i32) -> i32 {
+    if n <= 1 { return n; }
+    return fib(n - 1) + fib(n - 2);
+}
+
+fn main() -> i32 {
+    var i = 0;
+    var sum = 0;
+    while i < 10 {
+        i += 1;
+        sum += fib(i);
+    }
+    if sum != 88 { return 1; }
+    return 0;
+}
+```
+
+```bash
+zr fib.zr -o fib && ./fib && echo "ok"
+```
+
+`for i in 0..10` 现在还不行，换成 `while` 即可。
+
 ## 下一步
 
 - 装好编译器 → [安装与第一个程序](/learn/getting-started/)
-- 想知道下一步做什么 → [路线图](/community/roadmap/)
+- 想知道现在到底能写什么 → 本页的[实现状态](#实现状态)
+- 想看完整的开发进度 → [项目进展](/community/roadmap/)
 - 想参与实现 → [贡献指南](/community/contributing/)

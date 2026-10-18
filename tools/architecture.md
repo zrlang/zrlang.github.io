@@ -178,6 +178,6 @@ zr examples/generics_demo.zr -O2 --dump-asm
 
 仓库里的 `examples/showcase.zr` 覆盖了大部分语法，是很好的实验素材。
 
-> **⚠️ 当前状态**：编译器仍是早期原型，循环、枚举、`match`、泛型等阶段尚未落地，
-> 完整流水线还跑不到最后。仓库 `tests/README.md` 列了逐章的阻塞原因，
-> 见[教程概览](/learn/)的实现状态。
+> **⚠️ 当前状态**：v0.6.0 补齐了 SSA 构造（迭代支配边界插 φ）、活跃性分析与栈溢出，
+> 循环、递归、`comptime`、`match` 脱糖都已可用；但枚举、泛型/trait、闭包、
+> 切片仍未实现。逐章的阻塞原因见[项目进展](/community/roadmap/)。

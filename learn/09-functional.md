@@ -3,7 +3,7 @@ title: 9. 函数式编程特性
 description: 闭包、迭代器、消费器与适配器——zr 的函数式工具箱。
 sidebar: learn
 status: planned
-status_note: 闭包尚未实现。
+status_note: 闭包尚未实现；std/slice.zr 的高阶函数接受函数指针 fn(T) -> U。 迭代器模块依赖标准库，而后者目前仍编译不过。
 prev:
   title: 8. 自动化测试
   url: /learn/08-testing/

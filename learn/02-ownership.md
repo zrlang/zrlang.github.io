@@ -3,7 +3,7 @@ title: 2. 所有权系统
 description: 所有权规则、引用与借用、切片——zr 在编译期证明内存安全的核心机制。
 sidebar: learn
 status: planned
-status_note: 借用检查与引用语义尚未实现，本章是设计说明。
+status_note: 借用检查与引用语义尚未实现，切片也没有。本章是设计说明。 裸指针（取址、解引用、索引、指针算术）已在 v0.7.0 落地，见第 10 章。
 prev:
   title: 1. 基础语法
   url: /learn/01-syntax/

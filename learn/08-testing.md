@@ -4,8 +4,9 @@ description: zr 的断言、用例组织方式、宿主侧运行器，以及 #[t
 sidebar: learn
 status: partial
 status_note: >-
-  <code>#[test]</code> 属性能解析但未接入运行器；目前用宿主侧运行器
-  <code>cargo test --test zr_language</code> 驱动 <code>tests/cases/*.zr</code>。
+  cargo test --test zr_language 驱动 tests/cases/*.zr 下的 25 个自检用例，
+  每个用例在 -O0 到 -Oz 各编译运行一遍。v0.6.0 起 #[test] 测试桩已实现，
+  但还没有 zr test 子命令接运行器。
 prev:
   title: 7. 泛型、Trait 与生命周期
   url: /learn/07-generics/
@@ -18,8 +19,8 @@ Rust 用 `#[test]` + `cargo test` 做测试。zr 的现状不同：**`#[test]` �
 解析，但还没有语言内的测试运行器**。目前是用宿主侧的 Rust 运行器驱动
 「自检式的 `.zr` 程序」。
 
-> **⚠️ 当前状态**：属性未接入运行器。本章讲的是当前可行的写法，
-> 以及语言内测试的规划。
+> **⚠️ 当前状态**：`#[test]` 测试桩已在 v0.6.0 落地，但还没有 `zr test` 子命令
+> 去接运行器。本章讲的是当前可行的写法（自检用例 + 宿主运行器）。
 
 ## 核心约定：自检程序
 

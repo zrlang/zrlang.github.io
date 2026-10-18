@@ -46,6 +46,7 @@
     {%- endfor -%}
     {%- endif -%}
 
+    {%- if page.sidebar == 'learn' -%}
     <div class="sidebar-group sidebar-legend">
       <h2 class="sidebar-title">图例</h2>
       <ul class="legend-list">
@@ -54,6 +55,7 @@
         <li><span class="dot dot-plan"></span>尚未实现</li>
       </ul>
     </div>
+    {%- endif -%}
 
     <div class="sidebar-group sidebar-version">
       <div class="version-box">

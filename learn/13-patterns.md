@@ -2,8 +2,8 @@
 title: 13. 模式匹配
 description: match 与 if let、解构、匹配守卫——zr 里表达「不同形状的数据」的统一手段。
 sidebar: learn
-status: planned
-status_note: <code>match</code> 尚未降低到 MIR；<code>if let</code> 在 std 源码中已有使用。
+status: partial
+status_note: match 已脱糖成 if/else 链并有完整运行期语义：字面量、_、绑定臂、 或模式、guard，以及 bool 穷尽时不写尾 _（用例 25_match.zr）。 完整的模式形态（枚举 / 结构体 / 元组解构、范围）尚未实现。
 prev:
   title: 12. 面向对象特性
   url: /learn/12-oop/
@@ -16,8 +16,10 @@ next:
 **穷尽性验证器**。zr 的编译器把「忘记处理某个分支」当成错误，这是它消灭
 一整类 bug 的关键设计。
 
-> **⚠️ 当前状态**：`match` 尚未降低到 MIR，因此还不能编译。
-> `if let` 在 `std/net.zr` 中已有使用。本章是设计说明。
+> **⚠️ 当前状态**：`match` 已脱糖成 if/else 链并有运行期语义（用例 `25_match.zr`），
+> 支持字面量（含负数与 `char`）、`_`、绑定臂、或模式、`guard`，
+> 以及 bool 穷尽时不写尾 `_`。本章里出现的**枚举、结构体、元组解构与范围模式
+> 尚未实现**；`while let` 解析器里也没有。
 
 ## `match` 的结构
 

@@ -23,22 +23,33 @@ permalink: /
 
 ## 先读这一段：项目状态
 
-zr 目前是 **v0.5.0 早期原型**。它的**前端设计已经完整**（标准库 3900 行全部用 zr 写，
-覆盖 11 个目标平台），但**代码生成还差很远**：仓库的 `tests/README.md` 记录，
-按 Rust Book 顺序组织的测试用例目前只覆盖了 8 个 —— 循环不终止（缺 φ 节点）、
-递归坏栈帧、借用/引用/切片未实现、`enum` 未实现、`match` 未降到 MIR、
-泛型/闭包/线程未实现。
-
-当前真正能跑通的是：**变量、算术、函数调用、`if`/`else` 分支早返回**。
+zr 正在快速推进。**v0.6.0 里程碑已经全部完成**，语言测试用例从最早的 8 个
+增加到 **25 个**：
 
 ```bash
-# 编译一个当前可用的程序
-zr hello.zr -o hello
+# 现在就能编译并运行
+fn fib(n: i32) -> i32 {
+    if n <= 1 { return n; }
+    return fib(n - 1) + fib(n - 2);
+}
+
+fn main() -> i32 {
+    var i = 0;
+    var sum = 0;
+    while i < 10 { i += 1; sum += fib(i); }
+    return 0;
+}
 ```
 
-[教程](/learn/)的 14 章按 Rust Book 顺序写全了**语言设计**，
-每章顶部标注了真实实现状态，不会让你以为示例能编译。
-开发计划见[路线图](https://zrlang.github.io/community/roadmap/)。
+已跑通的领域：**变量、标量与浮点、函数与递归、全部循环、`if`/`else` 作为表达式、
+`match` 字面量匹配、`comptime` 编译期求值、`as` 转换、指针与 `.rodata` 字符串、寄存器溢出**。
+每个用例都会在 `-O0` 到 `-Oz` 各编译运行一遍，防止优化改坏语义。
+
+还没动的语言层面：**所有权与借用、结构体字段与枚举、切片、`Vec`/`String`、
+`Result`、泛型/trait、闭包、线程**。`for` 也还不能用（区间表达式解析问题）。
+
+[教程](/learn/)的 14 章按 Rust Book 顺序写全了**语言设计**，每章顶部标注真实状态。
+完整进展见[项目进展](https://zrlang.github.io/community/roadmap/)。
 
 ## zr 是什么
 
@@ -237,13 +248,14 @@ zr app.zr --target arm-none-eabi -o app.elf      # 直接产出可烧录映像
 
 ## 工具链
 
-zr 是**单文件编译器，没有子命令**：
+编译是**单文件**的，另外有四个子命令：
 
 ```
-zr 0.5.0 — zr language compiler
-
-USAGE:
-    zr [OPTIONS] <INPUT.zr>
+zr [OPTIONS] <INPUT.zr>        # 编译
+zr lsp                         # 语言服务器（stdio）
+zr pkg <SUBCOMMAND> ...        # 包管理器
+zr fmt [--check] <FILE>        # 格式化源码
+zr clean                       # 清空增量编译缓存
 
 OPTIONS:
     -o <file>           Output file
@@ -251,20 +263,21 @@ OPTIONS:
     -c                  Compile only, do not link
     --target <triple>   Target triple (default: host)
     --wat               Emit WebAssembly text (wasm32 only)
+    --no-incremental    Disable incremental compilation (on by default)
     --dump-tokens / --dump-ast / --dump-hir
-    --dump-mir / --dump-ssa / --dump-asm
-    --emit-llvm         Emit LLVM IR (future)
+    --dump-mir / --dump-ssa / --dump-ssa-after / --dump-asm
 ```
 
-仓库 README 里写的 `zr build` / `check` / `run` / `test` / `fmt` / `doc` 与
-`zr link` 都还是**规划**。完整选项与规划中的子命令见[命令行参考](https://zrlang.github.io/tools/cli/)。
-
 ```bash
-zr app.zr -o app                                    # 编译并链接
+zr app.zr -o app                                    # 编译并链接（增量编译默认开启）
 zr app.zr -c -o /dev/null                           # 只检查不产出
 zr app.zr --target wasm32-unknown-unknown --wat -o app.wat
 zr app.zr --target arm-none-eabi -o app.elf
+zr pkg init && zr pkg add lib ../lib                # 路径依赖
 ```
+
+还没有 `zr build` / `check` / `run` / `test` / `doc` / `link`。
+完整选项见[命令行参考](https://zrlang.github.io/tools/cli/)。
 
 ## 与同类语言的对比
 
@@ -282,14 +295,18 @@ zr app.zr --target arm-none-eabi -o app.elf
 
 ## 路线图
 
-- **v0.5.0（当前）** — 完整的编译流水线：词法 → 解析 → HIR → MIR → SSA → 优化 → 代码生成，
+- **v0.5.0 ✅** — 完整编译流水线：词法 → 解析 → HIR → MIR → SSA → 优化 → 代码生成，
   覆盖 11 个目标平台；标准库 core / io / string / collections / async / error / net / simd。
-- **v0.6.0** — 真实指令选择、线性扫描寄存器分配、优化 pass 完整实现、`comptime` 求值。
-- **v0.7.0** — 增量编译、包管理器 `zr pkg`、格式化器 `zr fmt`、语言服务器（LSP）。
-- **v1.0.0** — API 稳定、完整异步运行时、自举（用 zr 重写编译器）。
+- **v0.6.0 ✅** — `comptime` 编译期求值、完整属性系统、**迭代支配边界插 φ**（解开循环的关键）、
+  活跃性分析与栈溢出、x86-64/AArch64 的 f32 与 f64 指令选择、优化 pass 完整化、编译确定性。
+- **v0.7.0 🚧** — AArch64 浮点、字符串字面量落 `.rodata`、`extern "C"` 接通运行时、
+  指针与最小 SSA 内存模型已落地；ARM32/RISC-V/wasm 的浮点与指针后端、`str` 的切片表示、
+  32 位目标的多字长算术仍在做。
+- **v0.8.0 📋** — `zr pkg` 注册表与联网、`zr fmt` 风格定稿、LSP 补全与跳转、
+  内联汇编、SIMD 指令选择。
+- **v1.0.0 🎯** — API 稳定、完整异步运行时、**自举**（用 zr 重写编译器）、性能接近 Rust。
 
-详见 [路线图](https://zrlang.github.io/community/roadmap/)。
-
+每项的完整清单与已知边界见[项目进展](https://zrlang.github.io/community/roadmap/)。
 
 ## 继续阅读
 
@@ -299,20 +316,20 @@ zr app.zr --target arm-none-eabi -o app.elf
 | 章 | 内容 | 状态 |
 |:---|:-----|:-----|
 | [安装与第一个程序](https://zrlang.github.io/learn/getting-started/) | 构建编译器、交叉编译 | ● 已通过测试 |
-| [1. 基础语法](https://zrlang.github.io/learn/01-syntax/) | 变量、类型、函数、控制流 | ◐ 部分可用 |
+| [1. 基础语法](https://zrlang.github.io/learn/01-syntax/) | 变量、类型、函数、循环 | ◐ 仅缺 `for` |
 | [2. 所有权系统](https://zrlang.github.io/learn/02-ownership/) | 所有权、借用、切片 | ○ 尚未实现 |
 | [3. 结构体与枚举](https://zrlang.github.io/learn/03-structs-enums/) | `struct`、`impl`、`enum`、`Option` | ○ 尚未实现 |
-| [4. 包管理与项目](https://zrlang.github.io/learn/04-project/) | 编译模型、模块、`zr pkg` 规划 | ◐ 部分可用 |
+| [4. 包管理与项目](https://zrlang.github.io/learn/04-project/) | `zr pkg` / `fmt` / `lsp`、增量编译 | ◐ 路径依赖 |
 | [5. 集合类型](https://zrlang.github.io/learn/05-collections/) | `Vec<T>`、`String` | ○ 尚未实现 |
 | [6. 错误处理](https://zrlang.github.io/learn/06-errors/) | `panic`、`Result`、`?` | ○ 尚未实现 |
 | [7. 泛型、Trait 与生命周期](https://zrlang.github.io/learn/07-generics/) | 泛型、trait、生命周期 | ○ 尚未实现 |
-| [8. 自动化测试](https://zrlang.github.io/learn/08-testing/) | 断言、用例、运行器 | ◐ 部分可用 |
+| [8. 自动化测试](https://zrlang.github.io/learn/08-testing/) | 断言、25 个用例、跨优化等级运行器 | ◐ 无 `zr test` |
 | [9. 函数式编程特性](https://zrlang.github.io/learn/09-functional/) | 闭包、迭代器、适配器 | ○ 尚未实现 |
-| [10. 智能指针](https://zrlang.github.io/learn/10-pointers/) | `Box<T>`、堆分配 | ○ 尚未实现 |
+| [10. 智能指针](https://zrlang.github.io/learn/10-pointers/) | 指针、内存模型、栈槽 | ◐ 无 `Box`/`Rc` |
 | [11. 并发编程](https://zrlang.github.io/learn/11-concurrency/) | 协程、`async`、通道 | ○ 尚未实现 |
 | [12. 面向对象特性](https://zrlang.github.io/learn/12-oop/) | 封装、trait 对象、状态模式 | ○ 尚未实现 |
-| [13. 模式匹配](https://zrlang.github.io/learn/13-patterns/) | `match`、`if let`、解构 | ○ 尚未实现 |
-| [14. 高级特性](https://zrlang.github.io/learn/14-advanced/) | `unsafe`、宏、`comptime`、FFI | ○ 尚未实现 |
+| [13. 模式匹配](https://zrlang.github.io/learn/13-patterns/) | `match` 脱糖、绑定臂、守卫 | ◐ 仅字面量类 |
+| [14. 高级特性](https://zrlang.github.io/learn/14-advanced/) | `comptime`、属性、FFI、跨平台 | ◐ 无宏/asm |
 
 ● 已通过测试　◐ 部分可用　○ 尚未实现
 

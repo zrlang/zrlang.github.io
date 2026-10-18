@@ -18,15 +18,19 @@
   url: /learn/01-syntax/
   status: partial
   status_note: >-
-    变量、标量、运算符优先级与比较、函数调用、<code>if</code>/<code>else</code> 语句与
-    分支早返回已通过测试；<code>loop</code> / <code>while</code> / <code>for</code>、
-    <code>if</code> 作为表达式、递归目前无法正确编译（回边缺 φ 节点）。
+    变量、标量、浮点、运算符优先级与比较、函数、递归、<code>while</code>、
+    <code>loop</code>/<code>break</code>/<code>continue</code>、<code>if</code> 作为表达式、
+    <code>else if</code> 链、<code>as</code> 转换、字面量类型后缀均已通过测试（25 个用例中的 13 个）。
+    目前唯一的缺口是 <code>for</code> —— <code>a..b</code> 区间表达式仍解析成标识符。
   summary: 变量与可变性、标量与复合类型、函数、控制流。
 
 - title: 所有权系统
   url: /learn/02-ownership/
   status: planned
-  status_note: 借用检查与引用语义尚未实现，本章是设计说明。
+  status_note: >-
+    借用检查与引用语义尚未实现，切片也没有。本章是设计说明。
+    需要注意的是：<strong>裸指针</strong>（取址、解引用、索引、指针算术）已在 v0.7.0 落地，
+    见<a href="/learn/10-pointers/">第 10 章</a>。
   summary: 所有权规则、引用与借用、切片。
 
 - title: 结构体与枚举
@@ -40,9 +44,11 @@
   url: /learn/04-project/
   status: partial
   status_note: >-
-    标准库按需加载已落地（<code>use</code> 只拉取用到的 <code>std/*.zr</code>），
-    但模块系统仍不完整：<code>zr pkg</code> 包管理器要到 v0.7.0，跨文件依赖尚未打通。
-  summary: zr 的编译模型、模块与可见性，以及 zr pkg 的规划。
+    <code>zr pkg</code>（init / add / remove / list / tree / build / clean）、
+    <code>zr fmt</code>、<code>zr lsp</code> 与增量编译（默认开启）都已落地。
+    目前 <code>zr pkg</code> 只支持<strong>路径依赖</strong>，注册表协议与联网排在 v0.8.0；
+    模块系统也仍不完整：跨文件依赖尚未打通，可靠的做法仍是一个项目一个文件。
+  summary: 编译模型、模块与可见性、zr pkg / fmt / lsp 与增量编译。
 
 - title: 集合类型
   url: /learn/05-collections/
@@ -66,20 +72,30 @@
   url: /learn/08-testing/
   status: partial
   status_note: >-
-    <code>#[test]</code> 属性能解析但未接入运行器；目前用宿主侧运行器
-    <code>cargo test --test zr_language</code> 驱动 <code>tests/cases/*.zr</code>。
-  summary: 断言、用例组织、运行器，以及 <code>#[test]</code> 的规划。
+    <code>cargo test --test zr_language</code> 驱动 <code>tests/cases/*.zr</code> 下的
+    <strong>25 个</strong>自检用例，每个用例会在 <code>-O0</code> 到 <code>-Oz</code>
+    各编译运行一遍。v0.6.0 起 <code>#[test]</code> 测试桩已实现，但还没有
+    <code>zr test</code> 子命令接运行器。
+  summary: 断言、用例组织、跨优化等级的运行器，以及 <code>#[test]</code>。
 
 - title: 函数式编程特性
   url: /learn/09-functional/
   status: planned
-  status_note: 闭包尚未实现。
+  status_note: >-
+    闭包尚未实现；<code>std/slice.zr</code> 里的高阶函数接受的是函数指针
+    <code>fn(T) -> U</code>。迭代器模块依赖标准库，而后者目前仍编译不过。
   summary: 闭包、迭代器、消费器与适配器。
 
 - title: 智能指针
   url: /learn/10-pointers/
-  status: planned
-  status_note: 智能指针尚未实现。
+  status: partial
+  status_note: >-
+    v0.7.0 已实现<strong>最小 SSA 内存模型</strong>：<code>&amp;x</code> 取址、
+    <code>*p</code> / <code>*p = v</code> / <code>p[i]</code>、指针算术
+    <code>p + n</code> / <code>p - q</code>，以及 x86-64 / AArch64 各自的栈槽方案。
+    但 <code>Box</code> / <code>Rc</code> / <code>RefCell</code> 这类智能指针仍未实现。
+    目前仅 x86-64 实现了栈溢出。
+  summary: 指针、堆分配、栈槽与内存模型。
   summary: <code>Box&lt;T&gt;</code>、堆分配，以及 <code>Rc</code> / <code>RefCell</code> 的缺口。
 
 - title: 并发编程
@@ -96,14 +112,25 @@
 
 - title: 模式匹配
   url: /learn/13-patterns/
-  status: planned
-  status_note: <code>match</code> 尚未降低到 MIR；<code>if let</code> 在 std 源码中已有使用。
+  status: partial
+  status_note: >-
+    <code>match</code> 已脱糖成 if/else 链并有完整运行期语义：字面量（含负数与
+    <code>char</code>）、<code>_</code>、绑定臂、<code>\|</code> 或模式、<code>guard</code>，
+    以及 bool 穷尽时可以不写尾 <code>_</code>（用例 <code>25_match.zr</code>）。
+    完整的模式形态（枚举 / 结构体 / 元组解构、范围）尚未实现。
+  summary: match、脱糖语义、绑定臂与守卫。
   summary: <code>match</code>、<code>if let</code>、解构、匹配守卫。
 
 - title: 高级特性
   url: /learn/14-advanced/
-  status: planned
-  status_note: 仅 <code>asm!</code> / <code>intrinsic!</code> 能解析，代码生成尚未实现。
+  status: partial
+  status_note: >-
+    v0.6.0 交付了 <code>comptime</code> 编译期求值（含终止性双闸）与完整属性系统
+    （<code>inline</code> / <code>repr</code> / <code>link</code> / <code>cfg</code> /
+    <code>derive</code> / <code>test</code>）；v0.7.0 交付了 <code>.rodata</code> 字符串与
+    <code>extern "C"</code> 接通运行时。仍未实现：宏的代码生成、内联汇编、SIMD 指令选择
+    （<code>asm!</code> / <code>intrinsic!</code> 能解析但没有代码生成）。
+  summary: comptime、属性系统、指针与内存、宏、FFI、comptime、跨平台。
   summary: >-
     <code>unsafe</code>、裸指针、内联汇编、高级 trait、宏、<code>comptime</code>、
     跨平台与 C 互操作。

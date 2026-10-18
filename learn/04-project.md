@@ -1,11 +1,12 @@
 ---
 title: 4. 包管理与项目
-description: zr 没有 Cargo。本章讲它实际的编译模型、模块与可见性，以及 zr pkg 包管理器的规划。
+description: zr 没有 Cargo，但有 zr pkg、zr fmt、zr lsp 与增量编译。本章讲它的编译模型、模块与可见性。
 sidebar: learn
 status: partial
 status_note: >-
-  标准库按需加载已落地（<code>use</code> 只拉取用到的 <code>std/*.zr</code>），
-  但模块系统仍不完整：<code>zr pkg</code> 包管理器要到 v0.7.0，跨文件依赖尚未打通。
+  zr pkg（init / add / remove / list / tree / build / clean）、zr fmt、
+  zr lsp 与增量编译（默认开启）都已落地。目前 zr pkg 只支持路径依赖，
+  注册表协议与联网排在 v0.8.0；模块系统仍不完整，可靠做法是一个项目一个文件。
 prev:
   title: 3. 结构体与枚举
   url: /learn/03-structs-enums/
@@ -14,8 +15,9 @@ next:
   url: /learn/05-collections/
 ---
 
-Rust 用 Cargo 做构建、依赖与工作空间。**zr 目前没有 Cargo**，这一章讲的是
-它实际是怎么组织的，以及替代方案是什么。
+Rust 用 Cargo 做构建、依赖与工作空间。**zr 没有 Cargo，但已经有自己的
+`zr pkg` / `zr fmt` / `zr lsp`**，这一章讲它实际是怎么组织的，以及
+和 Cargo 的差别在哪。
 
 ## 现状：单文件编译
 
@@ -146,58 +148,114 @@ cc main.o shapes.o "$RT" -lc -lm -o app
 
 如果你现在就想在 zr 上写多文件项目，这是一个可行但笨的办法。
 
-## `zr pkg`：规划中的包管理器
+## `zr pkg`：zr 的包管理器
 
-`zr pkg` 排在 v0.7.0 路线图上。仓库 `future/zpm/` 已经写好了设计文档：
+`zr pkg` 已经可用，但目前只支持**路径依赖**（本地目录）：
 
-| 文档 | 内容 |
+```
+zr pkg <subcommand>
+
+    init                    Create a zr.toml in the current directory
+    add <name> <path>       Add a path dependency
+    remove <name>           Remove a dependency
+    list                    List dependencies
+    tree                    Print the dependency graph
+    build                   Build all dependencies in order
+    clean                   Remove build artifacts
+```
+
+典型流程：
+
+```bash
+zr pkg init                  # 生成 zr.toml
+zr pkg add mylib ../mylib    # 加一个路径依赖
+zr pkg list                  # 列出依赖
+zr pkg tree                  # 打印依赖图
+zr pkg build                 # 按依赖顺序构建全部
+```
+
+### 还没做的
+
+| 能力 | 状态 |
 |:-----|:-----|
-| `registry_protocol.md` | 注册表 REST 端点 |
-| `lockfile_format.md` | `zpm.lock` 结构 |
-| `dependency_resolution.md` | 基于 PubGrub 的依赖求解器 |
-| `build_scripts.md` | 沙箱化的 `build.zr` |
+| 路径依赖（本地目录） | ✔ |
+| 依赖图与拓扑构建顺序 | ✔ |
+| 注册表协议与联网拉取 | ✘ 排在 v0.8.0 |
+| 版本号语义化与冲突求解 | ✘ 设计文档已写（`future/zpm/`，PubGrub） |
+| 锁文件 `zpm.lock` | ✘ 设计文档已写 |
+| 沙箱化构建脚本 `build.zr` | ✘ 设计文档已写 |
 
-设计目标与 Cargo 对齐：
+编译器侧的实现是 `src/pkg.rs`，配套的 JSON 解析在 `src/json.rs`。
 
-- 声明式清单（`zr.toml`），描述包名、版本、依赖；
-- 版本号语义化；
-- `zpm.lock` 锁定精确版本，保证可复现构建；
-- PubGrub 算法求解依赖冲突并解释「为什么这两个版本不兼容」；
-- 构建脚本在沙箱中执行。
+## `zr fmt` 与 `zr lsp`
 
-编译器里已经有 `src/zpm/`（注册表、构建脚本），但还没有接到命令行上。
+```bash
+zr fmt src/main.zr            # 就地格式化
+zr fmt --check src/main.zr    # 只检查（CI 用）
+zr lsp                        # 语言服务器，stdio
+```
+
+`zr fmt` 的风格还没定稿（排在 v0.8.0），`zr lsp` 的补全与跳转也在 v0.8.0 路线里。
+编辑器配置示例：
+
+```json
+{
+  "zr-lsp": {
+    "command": "zr",
+    "args": ["lsp"]
+  }
+}
+```
+
+## 增量编译
+
+**默认开启。** 源文件与所有模块的内容指纹都未变时复用上次产物。
+
+```bash
+zr app.zr -o app                    # 命中缓存
+zr app.zr -o app -v                 # 打印缓存命中的诊断信息
+zr app.zr -o app --no-incremental   # 强制全量重编
+zr clean                            # 清空缓存
+```
+
+增量编译只覆盖**单文件**场景。多文件项目目前仍然要把每个文件编译成目标文件
+再手动链接。
 
 ## 与 Cargo 的对照
 
 | 能力 | Cargo | zr 现状 |
 |:-----|:------|:--------|
-| 清单文件 | `Cargo.toml` | 无（规划中 `zr.toml`） |
-| 编译单个文件 | `cargo build --bin x` | `zr x.zr -o x` |
-| 依赖管理 | `Cargo.lock` + crates.io | 无 |
-| 依赖求解 | PubGrub | 设计文档已写（`future/zpm/`） |
-| 构建脚本 | `build.rs` | 设计文档已写 |
-| 工作空间 | `[workspace]` | 无 |
+| 清单文件 | `Cargo.toml` | ✔ `zr.toml` |
+| 编译单个文件 | `cargo build --bin x` | ✔ `zr x.zr -o x` |
+| 路径依赖 | `path = "..."` | ✔ `zr pkg add` |
+| 注册表 / 联网 | crates.io | ✘ 排在 v0.8.0 |
+| 版本约束与冲突求解 | PubGrub | ✘ 设计文档已写 |
+| 锁文件 | `Cargo.lock` | ✘ 设计文档已写 |
+| 构建脚本 | `build.rs` | ✘ 设计文档已写 |
+| 格式化 | `cargo fmt` | ✔ `zr fmt`（风格未定稿） |
+| 语言服务器 | rust-analyzer | ✔ `zr lsp`（补全/跳转待做） |
+| 增量编译 | ✔ | ✔（仅单文件） |
+| 多线程编译 | ✔ | ✘ 排在 v0.7.0 |
+| 工作空间 | `[workspace]` | ✘ |
 | 标准库组织 | 编译进二进制 | **按需加载 `std/*.zr`** |
 | 多文件 | 自动 | 手动 `-c` + 平台链接器 |
 
 zr 选择让标准库用 zr 自己写（自举方向），而不是像 Cargo 那样把标准库编译进
 `rustc`。这让「换一个目标平台」只需要替换 `extern "C"` 的实现，
-但也意味着标准库的模块边界要更小心。
+但也意味着标准库的模块边界要更小心 —— 而且 `use` 拉进来的模块处在同一个
+扁平命名空间里，两个模块不能有同名 `pub fn`。
 
 ## 小结
 
-现在：
-
 ```bash
-zr app.zr -o app                       # 单文件（运行时库自动挑选）
-zr main.zr -c -o main.o                 # 多文件（最后一步要自己调平台链接器）
+zr app.zr -o app                       # 单文件编译（运行时库自动挑选）
+zr pkg init && zr pkg add lib ../lib   # 路径依赖
+zr fmt src/main.zr                     # 格式化
+zr lsp                                 # 语言服务器
+zr app.zr -o app --no-incremental      # 关掉增量，强制全量
 ```
 
-未来（v0.7.0）：
+多文件目前仍要手动：`zr a.zr -c -o a.o`，再用平台链接器链接。
 
-```bash
-zr pkg add <name>       # 加依赖
-zr pkg build           # 解析依赖 + 构建
-```
+下一步：[5. 集合类型](/learn/05-collections/)。
 
-下一章：[5. 集合类型](/learn/05-collections/)。

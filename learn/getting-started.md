@@ -10,9 +10,17 @@ next:
   url: /learn/01-syntax/
 ---
 
-## ⚠️ 先说清楚 zr 的 CLI 长什么样
+## zr 的 CLI 长什么样
 
-zr 的命令行是**单文件编译器**，没有 Cargo 那样的子命令：
+编译是**单文件**的，另外有四个子命令：
+
+```
+zr [OPTIONS] <INPUT.zr>        # 编译
+zr lsp                         # 语言服务器（stdio）
+zr pkg <SUBCOMMAND> ...        # 包管理器
+zr fmt [--check] <FILE>        # 格式化源码
+zr clean                       # 清空增量编译缓存
+```
 
 ```
 zr 0.5.0 — zr language compiler
@@ -26,22 +34,24 @@ OPTIONS:
     -c                  Compile only, do not link
     --target <triple>   Target triple (default: host)
     --wat               Emit WebAssembly text (wasm32 only)
-    --dump-tokens       Dump lexer output
+    --dump-tokens      Dump lexer output
     --dump-ast          Dump AST
     --dump-hir          Dump HIR
     --dump-mir          Dump MIR
     --dump-ssa          Dump SSA
+    --dump-ssa-after    Dump SSA after optimization
     --dump-asm          Dump assembly
     --emit-llvm         Emit LLVM IR (future)
     -h, --help          Show this help
     -V, --version       Print version
 ```
 
-也就是说：**没有 `zr build`、`zr run`、`zr test`、`zr new`**。
+另外还有三个未出现在 `--help` 里但可用的选项：`-g` / `--debug`（DWARF 调试信息）、
+`--no-incremental`（关闭增量编译，默认是**开启**的）、`-v` / `--verbose`。
+
+**仍然没有** `zr build`、`zr run`、`zr test`、`zr check`、`zr doc`、`zr link`。
 把 `build` 当参数传进去会得到 `multiple input files not supported yet`。
 
-zr 仓库的 README 里写了一套更完整的子命令，那是**规划**（`zr fmt`、
-`zr doc`、`zr pkg` 排在 v0.7.0），当前二进制里没有。
 详见[命令行参考](/tools/cli/)。
 
 `--version` 的输出：
@@ -94,7 +104,28 @@ zr --version
 
 ## 第一个程序
 
-新建 `hello.zr`：
+`println` 来自标准库，而标准库目前还有模块编不过，所以先写一个不依赖 `use`
+的版本。它**现在就能编译并运行**：
+
+```rust
+// hello.zr
+extern "C" {
+    fn zr_write(fd: i32, s: *const u8, n: usize);
+}
+
+fn main() -> i32 {
+    zr_write(1, "Hello, zr!\n" as *const u8, 12);
+    return 0;
+}
+```
+
+```bash
+zr hello.zr -o hello
+./hello
+# Hello, zr!
+```
+
+带标准库的版本是这样写的（`use io::println`），但在标准库修好之前可能编不过：
 
 ```rust
 use io::println;
@@ -105,20 +136,13 @@ fn main() -> i32 {
 }
 ```
 
-编译：
-
-```bash
-zr hello.zr -o hello
-./hello
-```
-
 标准库是**按需加载**的：`use io::println` 会让编译器去 `std/io.zr`
 找 `io` 模块并把它并进当前编译单元。所以第一次运行前请确认 `std/` 目录
 与 `zr` 可执行文件在同一份仓库里。
 
-> **⚠️ 现状**：`std/` 里目前还有模块编译不过（`mem.zr` 等），
-> 因此带 `use` 的程序暂时可能失败。这是仓库 `tests/README.md` 里
-> 记着的已知问题，见[教程概览](/learn/)的实现状态。
+> **⚠️ 现状**：`std/` 里目前还有模块编译不过，因此带 `use` 的程序暂时可能失败。
+> 用标准库之前，先确认它能编过；不依赖标准库的程序（不写 `use`）是安全的。
+> 完整清单见[教程概览](/learn/)的实现状态。
 
 ## `main` 的约定
 
@@ -191,8 +215,9 @@ zr program.zr --dump-tokens    # ① 词法分析结果
 zr program.zr --dump-ast       # ② AST
 zr program.zr --dump-hir       # ③ HIR（类型已推导、所有权已标注）
 zr program.zr --dump-mir       # ④ MIR（基本块与终结器，控制流已脱糖）
-zr program.zr --dump-ssa       # ⑤ SSA（φ 节点已插入）
-zr program.zr --dump-asm       # ⑥ 最终机器码
+zr program.zr --dump-ssa       # ⑤ SSA（φ 节点已插入、寄存器重命名完成）
+zr program.zr --dump-ssa-after # ⑥ 优化后的 SSA
+zr program.zr --dump-asm       # ⑦ 最终机器码
 ```
 
 这也是学 zr 最好的方式：想知道 `match` 脱糖成什么样、`comptime` 在哪一步
@@ -200,14 +225,16 @@ zr program.zr --dump-asm       # ⑥ 最终机器码
 
 ## 跑语言测试
 
-zr 的测试是自检式 `.zr` 程序，由宿主侧运行器驱动：
+zr 的测试是自检式 `.zr` 程序（`tests/cases/*.zr`，共 25 个），由宿主侧运行器驱动。
+每个用例会在 `-O0` / `-O1` / `-O2` / `-O3` / `-Oz` 下**各编译运行一遍** ——
+优化 pass 只要有一条改坏语义，用例就会在某个等级上变红。
 
 ```bash
-# 跑 tests/cases/*.zr
+# 跑全部语言用例
 cargo test --test zr_language
 
-# 或者单独编译一个用例
-zr tests/cases/01_variables.zr -o /tmp/t1 && /tmp/t1
+# 单独编译并运行一个用例
+zr tests/cases/15_loops.zr -o /tmp/t1 && /tmp/t1
 
 # 编译器自身的 Rust 单元测试
 cargo test

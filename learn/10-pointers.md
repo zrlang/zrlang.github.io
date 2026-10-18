@@ -2,8 +2,8 @@
 title: 10. 智能指针
 description: Box&lt;T&gt;、堆分配、裸指针，以及 zr 为什么没有 Rc 与 RefCell。
 sidebar: learn
-status: planned
-status_note: 智能指针尚未实现。
+status: partial
+status_note: v0.7.0 已实现最小 SSA 内存模型：&x 取址、*p / *p = v / p[i]、 指针算术 p + n / p - q，以及 x86-64 与 AArch64 各自的栈槽方案。 Box / Rc / RefCell 这类智能指针仍未实现；栈溢出目前仅 x86-64 有。
 prev:
   title: 9. 函数式编程特性
   url: /learn/09-functional/
@@ -15,7 +15,9 @@ next:
 Rust 用 `Box` / `Rc` / `RefCell` 三件套处理堆分配与内部可变性。
 zr 目前只有裸指针层面的原语 —— 这一章讲清楚**有什么、没有什么，以及为什么**。
 
-> **⚠️ 当前状态**：智能指针尚未实现。本章是设计说明。
+> **⚠️ 当前状态**：v0.7.0 已实现**最小 SSA 内存模型** —— 裸指针的取址、解引用、
+> 索引与指针算术都能编译并正确运行（用例 `24_pointers.zr`），见本章「裸指针」一节。
+> 但 `Box<T>` / `Rc<T>` / `RefCell<T>` 这类带所有权语义的智能指针仍未实现。
 
 ## `Box<T>`：把值放到堆上
 

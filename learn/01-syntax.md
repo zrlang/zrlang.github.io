@@ -4,8 +4,9 @@ description: 变量与可变性、标量与复合类型、函数与注释、控�
 sidebar: learn
 status: partial
 status_note: >-
-  变量、标量、运算符优先级与比较、函数调用、if/else 语句与分支早返回已通过测试；
-  loop / while / for、if 作为表达式、递归目前无法正确编译（回边缺 φ 节点）。
+  变量、标量、浮点、运算符、函数、递归、while / loop / break / continue、
+  if 作为表达式、else if 链、as 转换、字面量类型后缀均已通过测试。
+  当前唯一的语法缺口是 for —— a..b 区间表达式仍解析成标识符。
 prev:
   title: 安装与第一个程序
   url: /learn/getting-started/
@@ -267,10 +268,10 @@ for i in 0..=10 {     // 含尾
 
 `for` 的底层是迭代器协议，见 [9. 函数式编程特性](/learn/09-functional/)。
 
-> **⚠️ 当前状态**：`loop` / `while` / `for` 暂时无法正确编译。编译器把循环降低到
-> MIR → SSA 时还没有插入 φ 节点，回边会读到旧值，导致循环不终止。
-> 本节代码是语言设计的目标形态，现阶段请参考 `tests/cases/07_control_flow.zr`
-> 里可用的「分支早返回」写法。
+> **⚠️ 唯一的缺口**：`while`、`loop` / `break` / `continue`、`if` 作为表达式
+> 在 v0.6.0 起全部可用（用例 `09_while` / `15_loops` / `17_loop_break` /
+> `10_if_expression` / `11_if_else_chain`）。但 **`for` 仍然不可用** ——
+> `for x in a..b` 里的 `..` 区间表达式仍然解析成标识符。
 
 ## 小结
 
