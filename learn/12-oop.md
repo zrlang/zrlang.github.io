@@ -2,8 +2,8 @@
 title: 12. 面向对象特性
 description: zr 没有类。封装、trait 对象、以及用状态模式建模。
 sidebar: learn
-status: planned
-status_note: 依赖尚未实现的 <code>trait</code> 与 <code>enum</code>。
+status: partial
+status_note: 结构体、impl 方法已实现；trait 对象动态分派仍属于后续目标。
 prev:
   title: 11. 并发编程
   url: /learn/11-concurrency/
@@ -15,7 +15,8 @@ next:
 Rust 说「没有面向对象，但有 trait」。zr 的立场更彻底：**连 trait 对象都用得很少**。
 这一章讲清楚 zr 怎么表达「对象」，以及什么时候不该用面向对象。
 
-> **⚠️ 当前状态**：本章依赖尚未实现的 `trait` 与 `enum`。设计说明。
+> **⚠️ 当前状态**：结构体与 `impl` 方法均已实现；
+> trait 对象动态分派仍属于后续目标。
 
 ## zr 里没有类
 

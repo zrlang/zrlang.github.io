@@ -58,7 +58,7 @@ zr 教程按《Rust 程序设计语言》（The Rust Book）的章节顺序组�
 
 ### 已经能跑的部分
 
-`tests/cases/` 下 25 个用例覆盖的内容：
+`tests/cases/` 下 26 个用例覆盖的内容：
 
 | 领域 | 用例 |
 |:-----|:-----|
@@ -70,9 +70,11 @@ zr 教程按《Rust 程序设计语言》（The Rust Book）的章节顺序组�
 | 寄存器溢出 | `14_spill`、`18_spill_ops` |
 | 字符串与指针 | `23_strings`、`24_pointers` |
 | 模式匹配 | `25_match`（脱糖成 if/else 链） |
+| 结构体与 Drop | `26_comptime_struct` |
 
 也就是说：**变量、算术、浮点、函数调用、递归、循环、`if`/`else` 表达式、
-`match` 字面量模式、`comptime`、`as` 转换、指针与字符串字面量**。
+`match` 字面量模式、`comptime`、`as` 转换、指针与字符串字面量、结构体与
+Drop 析构**。
 
 还不能用：`for`、所有权与借用、结构体字段与枚举、切片、集合、
 `Result`、泛型/trait、闭包、线程。

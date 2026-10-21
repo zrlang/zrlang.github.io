@@ -2,8 +2,8 @@
 title: 6. 错误处理
 description: panic、Result、? 运算符——错误是值，传播是运算符，zr 里没有异常。
 sidebar: learn
-status: planned
-status_note: 断言内建与 <code>Result</code> 尚未实现。
+status: ready
+status_note: panic、Result、? 运算符、unwrap_or 等均已实现。
 prev:
   title: 5. 集合类型
   url: /learn/05-collections/
@@ -15,7 +15,7 @@ next:
 zr 没有异常。所有可能失败的函数都在**返回类型**里声明这一点 ——
 调用点一眼就能看出这个函数会不会失败。
 
-> **⚠️ 当前状态**：断言内建（`assert` / `assert_eq`）与 `Result` 尚未实现。
+> **⚠️ 当前状态**：`panic`、`assert` / `assert_eq`、`Result` 与 `?` 运算符均已实现。
 > 本章是设计说明。
 
 ## 两种失败

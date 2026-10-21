@@ -2,9 +2,9 @@
 title: 8. 自动化测试
 description: zr 的断言、用例组织方式、宿主侧运行器，以及 #[test] 的规划。
 sidebar: learn
-status: partial
+status: ready
 status_note: >-
-  cargo test --test zr_language 驱动 tests/cases/*.zr 下的 25 个自检用例，
+  cargo test --test zr_language 驱动 tests/cases/*.zr 下的 26 个自检用例，
   每个用例在 -O0 到 -Oz 各编译运行一遍。v0.6.0 起 #[test] 测试桩已实现，
   但还没有 zr test 子命令接运行器。
 prev:

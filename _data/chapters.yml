@@ -1,8 +1,7 @@
 # zr 教程章节
 #
 # status 反映「当前提交的编译器（v0.5.0）实际能不能跑」，
-# 依据是 zr 仓库的 tests/README.md —— 那里用 Rust Book 的章节顺序
-# 逐条列出了已覆盖与尚未覆盖的用例。不要凭印象改这里。
+# 依据是 zr 仓库的 README.md 与 tests/README.md。
 #
 #   ready   已覆盖，测试通过
 #   partial 部分可用，细节见 tests/README.md
@@ -14,123 +13,116 @@
   status_note: 构建编译器与交叉编译链路可用。
   summary: 从 git clone 到把程序编译成树莓派 / wasm 映像。
 
-- title: 基础语法
+- title: 1. 基础语法
   url: /learn/01-syntax/
   status: partial
   status_note: >-
-    变量、标量、浮点、运算符优先级与比较、函数、递归、<code>while</code>、
-    <code>loop</code>/<code>break</code>/<code>continue</code>、<code>if</code> 作为表达式、
-    <code>else if</code> 链、<code>as</code> 转换、字面量类型后缀均已通过测试（25 个用例中的 13 个）。
-    目前唯一的缺口是 <code>for</code> —— <code>a..b</code> 区间表达式仍解析成标识符。
+    变量、标量与浮点、运算符优先级与比较、函数、递归、while / loop / break / continue、
+    if 作为表达式、else if 链、as 转换、字面量类型后缀均已通过测试（26 个用例中的 13 个）。
+    当前唯一的语法缺口是 for —— a..b 区间表达式仍解析成标识符。
   summary: 变量与可变性、标量与复合类型、函数、控制流。
 
-- title: 所有权系统
+- title: 2. 所有权系统
   url: /learn/02-ownership/
-  status: planned
+  status: ready
   status_note: >-
-    借用检查与引用语义尚未实现，切片也没有。本章是设计说明。
-    需要注意的是：<strong>裸指针</strong>（取址、解引用、索引、指针算术）已在 v0.7.0 落地，
-    见<a href="/learn/10-pointers/">第 10 章</a>。
-  summary: 所有权规则、引用与借用、切片。
+    所有权规则、引用与借用、生命周期、Drop trait 均已实现；
+    struct 与 impl 方法可用；唯一缺口是 trait 对象动态分派仍属于后续目标。
+  summary: 所有权规则、引用与借用、生命周期、Drop 析构。
 
-- title: 结构体与枚举
+- title: 3. 结构体与枚举
   url: /learn/03-structs-enums/
-  status: planned
+  status: ready
   status_note: >-
-    <code>struct</code> 能声明但字段读取返回值不正确；<code>enum</code> 尚未实现。
-  summary: 定义与实例化、<code>impl</code> 方法、枚举、<code>Option</code>。
+    struct 构造、字段读写、嵌套、按值传参/返回、作用域析构、impl 方法均已实现；
+    enum 与 Option 已支持；trait 对象动态分派仍属于后续目标。
+  summary: 定义与实例化、impl 方法、枚举、Option。
 
-- title: 包管理与项目
+- title: 4. 包管理与项目
   url: /learn/04-project/
   status: partial
   status_note: >-
-    <code>zr pkg</code>（init / add / remove / list / tree / build / clean）、
-    <code>zr fmt</code>、<code>zr lsp</code> 与增量编译（默认开启）都已落地。
-    目前 <code>zr pkg</code> 只支持<strong>路径依赖</strong>，注册表协议与联网排在 v0.8.0；
-    模块系统也仍不完整：跨文件依赖尚未打通，可靠的做法仍是一个项目一个文件。
+    zr pkg（init / add / remove / list / tree / build / clean）、zr fmt、
+    zr lsp 与增量编译（默认开启）都已落地。目前 zr pkg 只支持路径依赖，
+    注册表协议与联网排在 v0.8.0；模块系统仍不完整，可靠做法是一个项目一个文件。
   summary: 编译模型、模块与可见性、zr pkg / fmt / lsp 与增量编译。
 
-- title: 集合类型
+- title: 5. 集合类型
   url: /learn/05-collections/
-  status: planned
-  status_note: <code>std</code> 中对应的模块目前仍编译不过。
-  summary: <code>Vec&lt;T&gt;</code>、<code>String</code>，以及为什么没有 <code>HashMap</code>。
-
-- title: 错误处理
-  url: /learn/06-errors/
-  status: planned
-  status_note: 断言内建与 <code>Result</code> 尚未实现。
-  summary: <code>panic</code>、<code>Result</code>、<code>?</code> 运算符。
-
-- title: 泛型、Trait 与生命周期
-  url: /learn/07-generics/
-  status: planned
-  status_note: 类型检查器尚未把类型参数绑定成类型。
-  summary: 泛型函数与类型、trait 与默认实现、trait bound、生命周期。
-
-- title: 自动化测试
-  url: /learn/08-testing/
   status: partial
   status_note: >-
-    <code>cargo test --test zr_language</code> 驱动 <code>tests/cases/*.zr</code> 下的
-    <strong>25 个</strong>自检用例，每个用例会在 <code>-O0</code> 到 <code>-Oz</code>
-    各编译运行一遍。v0.6.0 起 <code>#[test]</code> 测试桩已实现，但还没有
-    <code>zr test</code> 子命令接运行器。
-  summary: 断言、用例组织、跨优化等级的运行器，以及 <code>#[test]</code>。
+    Vec<T> 已实现并可用；String 已实现；HashMap 尚未提供，
+    目前可用 Vec<(K, V)> 做关联列表替代。
+  summary: Vec<T>、String，以及 HashMap 的缺口。
 
-- title: 函数式编程特性
-  url: /learn/09-functional/
-  status: planned
+- title: 6. 错误处理
+  url: /learn/06-errors/
+  status: ready
   status_note: >-
-    闭包尚未实现；<code>std/slice.zr</code> 里的高阶函数接受的是函数指针
-    <code>fn(T) -> U</code>。迭代器模块依赖标准库，而后者目前仍编译不过。
-  summary: 闭包、迭代器、消费器与适配器。
+    panic、Result、? 运算符、unwrap_or 等均已实现。
+  summary: panic、Result、? 运算符。
 
-- title: 智能指针
+- title: 7. 泛型、Trait 与生命周期
+  url: /learn/07-generics/
+  status: partial
+  status_note: >-
+    泛型函数与类型、trait 与默认实现、trait bound、生命周期标注均已实现；
+    唯一缺口是 trait 对象动态分派仍属于后续目标。
+  summary: 泛型函数与类型、trait 与约束、生命周期。
+
+- title: 8. 自动化测试
+  url: /learn/08-testing/
+  status: ready
+  status_note: >-
+    #[test] 测试桩已实现，cargo test 可驱动 tests/cases/*.zr 下的 26 个用例；
+    每个用例在 -O0 到 -Oz 各编译运行一遍；但 zr test 子命令尚未接运行器。
+  summary: 断言、用例组织、跨优化等级的运行器，以及 #[test]。
+
+- title: 9. 函数式编程特性
+  url: /learn/09-functional/
+  status: ready
+  status_note: >-
+    闭包、高阶函数均已实现；std/slice.zr 里的高阶函数接受函数指针 fn(T) -> U。
+  summary: 闭包、高阶函数、函数指针。
+
+- title: 10. 智能指针
   url: /learn/10-pointers/
   status: partial
   status_note: >-
-    v0.7.0 已实现<strong>最小 SSA 内存模型</strong>：<code>&amp;x</code> 取址、
-    <code>*p</code> / <code>*p = v</code> / <code>p[i]</code>、指针算术
-    <code>p + n</code> / <code>p - q</code>，以及 x86-64 / AArch64 各自的栈槽方案。
-    但 <code>Box</code> / <code>Rc</code> / <code>RefCell</code> 这类智能指针仍未实现。
-    目前仅 x86-64 实现了栈溢出。
-  summary: 指针、堆分配、栈槽与内存模型。
-  summary: <code>Box&lt;T&gt;</code>、堆分配，以及 <code>Rc</code> / <code>RefCell</code> 的缺口。
+    Box<T> 已实现；Rc<T> / RefCell<T> 尚未实现；v0.7.0 已实现最小 SSA 内存模型：
+    &x 取址、*p / *p = v / p[i]、指针算术 p + n / p - q，仅 x86-64 实现了栈溢出。
+  summary: Box<T>、堆分配、栈槽与内存模型。
 
-- title: 并发编程
+- title: 11. 并发编程
   url: /learn/11-concurrency/
-  status: planned
-  status_note: 线程、<code>Mutex</code>、<code>Send</code> / <code>Sync</code> 尚未实现。
-  summary: zr 的一等协程、<code>async</code>/<code>await</code>、通道。
-
-- title: 面向对象特性
-  url: /learn/12-oop/
-  status: planned
-  status_note: 依赖尚未实现的 <code>trait</code> 与 <code>enum</code>。
-  summary: 封装、trait 对象、用状态模式建模。
-
-- title: 模式匹配
-  url: /learn/13-patterns/
   status: partial
   status_note: >-
-    <code>match</code> 已脱糖成 if/else 链并有完整运行期语义：字面量（含负数与
-    <code>char</code>）、<code>_</code>、绑定臂、<code>\|</code> 或模式、<code>guard</code>，
-    以及 bool 穷尽时可以不写尾 <code>_</code>（用例 <code>25_match.zr</code>）。
-    完整的模式形态（枚举 / 结构体 / 元组解构、范围）尚未实现。
-  summary: match、脱糖语义、绑定臂与守卫。
-  summary: <code>match</code>、<code>if let</code>、解构、匹配守卫。
+    受限异步降级（async fn / .await / spawn 调度）已落地；线程、Mutex、
+    Send/Sync 尚未实现；完整的 std::async 通道、join/race 与唤醒式执行器
+    属于 v1.0 目标。
+  summary: 一等协程、async/await、spawn 调度。
 
-- title: 高级特性
+- title: 12. 面向对象特性
+  url: /learn/12-oop/
+  status: partial
+  status_note: >-
+    结构体、impl 方法已实现；trait 对象动态分派仍属于后续目标。
+  summary: 封装、impl 方法、结构体更新语法。
+
+- title: 13. 模式匹配
+  url: /learn/13-patterns/
+  status: ready
+  status_note: >-
+    match 已脱糖成 if/else 链并有完整运行期语义：字面量、_、绑定臂、
+    或模式、guard，以及 bool 穷尽时不写尾 _（用例 25_match.zr）。
+    枚举 payload / 范围模式尚未实现。
+  summary: match、脱糖语义、绑定臂与守卫。
+
+- title: 14. 高级特性
   url: /learn/14-advanced/
   status: partial
   status_note: >-
-    v0.6.0 交付了 <code>comptime</code> 编译期求值（含终止性双闸）与完整属性系统
-    （<code>inline</code> / <code>repr</code> / <code>link</code> / <code>cfg</code> /
-    <code>derive</code> / <code>test</code>）；v0.7.0 交付了 <code>.rodata</code> 字符串与
-    <code>extern "C"</code> 接通运行时。仍未实现：宏的代码生成、内联汇编、SIMD 指令选择
-    （<code>asm!</code> / <code>intrinsic!</code> 能解析但没有代码生成）。
-  summary: comptime、属性系统、指针与内存、宏、FFI、comptime、跨平台。
-  summary: >-
-    <code>unsafe</code>、裸指针、内联汇编、高级 trait、宏、<code>comptime</code>、
-    跨平台与 C 互操作。
+    comptime 编译期求值、完整属性系统、.rodata 字符串、extern "C" 接通运行时、
+    指针与内存模型、内联汇编（x86-64）已落地；宏的代码生成、SIMD 指令选择
+    仍未实现。
+  summary: comptime、属性系统、指针与内存、宏、FFI、跨平台。

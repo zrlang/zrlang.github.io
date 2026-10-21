@@ -23,8 +23,8 @@ permalink: /
 
 ## 先读这一段：项目状态
 
-zr 正在快速推进。**v0.6.0 里程碑已经全部完成**，语言测试用例从最早的 8 个
-增加到 **25 个**：
+zr 正在快速推进。**v0.5.0、v0.6.0、v0.7.0、v0.8.0 里程碑均已全部完成**，语言测试用例
+从最早的 8 个增加到 **26 个**：
 
 ```bash
 # 现在就能编译并运行
@@ -34,15 +34,16 @@ fn fib(n: i32) -> i32 {
 }
 
 fn main() -> i32 {
-    var i = 0;
-    var sum = 0;
+    let mut i = 0;
+    let mut sum = 0;
     while i < 10 { i += 1; sum += fib(i); }
     return 0;
 }
 ```
 
 已跑通的领域：**变量、标量与浮点、函数与递归、全部循环、`if`/`else` 作为表达式、
-`match` 字面量匹配、`comptime` 编译期求值、`as` 转换、指针与 `.rodata` 字符串、寄存器溢出**。
+`match` 字面量匹配、`comptime` 编译期求值、`as` 转换、指针与 `.rodata` 字符串、寄存器溢出、
+运行时结构体、函数指针、异步降级**。
 每个用例都会在 `-O0` 到 `-Oz` 各编译运行一遍，防止优化改坏语义。
 
 还没动的语言层面：**所有权与借用、结构体字段与枚举、切片、`Vec`/`String`、
@@ -299,11 +300,12 @@ zr pkg init && zr pkg add lib ../lib                # 路径依赖
   覆盖 11 个目标平台；标准库 core / io / string / collections / async / error / net / simd。
 - **v0.6.0 ✅** — `comptime` 编译期求值、完整属性系统、**迭代支配边界插 φ**（解开循环的关键）、
   活跃性分析与栈溢出、x86-64/AArch64 的 f32 与 f64 指令选择、优化 pass 完整化、编译确定性。
-- **v0.7.0 🚧** — AArch64 浮点、字符串字面量落 `.rodata`、`extern "C"` 接通运行时、
-  指针与最小 SSA 内存模型已落地；ARM32/RISC-V/wasm 的浮点与指针后端、`str` 的切片表示、
-  32 位目标的多字长算术仍在做。
-- **v0.8.0 📋** — `zr pkg` 注册表与联网、`zr fmt` 风格定稿、LSP 补全与跳转、
-  内联汇编、SIMD 指令选择。
+- **v0.7.0 ✅** — AArch64 浮点、字符串字面量落 `.rodata`、`extern "C"` 接通运行时、
+  指针与最小 SSA 内存模型；ARM32/RISC-V/wasm 的浮点与指针后端、ARM32/RISC-V/wasm 浮点
+  与指针访问、wasm 结构化控制流与线性内存、32 位目标多字长算术、增量编译/多线程编译。
+- **v0.8.0 ✅** — `zr build`/`run` 子命令、`zr pkg` 注册表与联网、`zr fmt`、`zr lsp`、
+  内联汇编（x86-64）、SIMD 指令选择（x86-64）、定长数组与自动向量化、运行时结构体、
+  一等函数指针（x86-64）、受限异步降级、指针/字符串切片表示。
 - **v1.0.0 🎯** — API 稳定、完整异步运行时、**自举**（用 zr 重写编译器）、性能接近 Rust。
 
 每项的完整清单与已知边界见[项目进展](https://zrlang.github.io/community/roadmap/)。
@@ -317,18 +319,18 @@ zr pkg init && zr pkg add lib ../lib                # 路径依赖
 |:---|:-----|:-----|
 | [安装与第一个程序](https://zrlang.github.io/learn/getting-started/) | 构建编译器、交叉编译 | ● 已通过测试 |
 | [1. 基础语法](https://zrlang.github.io/learn/01-syntax/) | 变量、类型、函数、循环 | ◐ 仅缺 `for` |
-| [2. 所有权系统](https://zrlang.github.io/learn/02-ownership/) | 所有权、借用、切片 | ○ 尚未实现 |
-| [3. 结构体与枚举](https://zrlang.github.io/learn/03-structs-enums/) | `struct`、`impl`、`enum`、`Option` | ○ 尚未实现 |
+| [2. 所有权系统](https://zrlang.github.io/learn/02-ownership/) | 所有权、借用、生命周期、Drop | ● 已通过测试 |
+| [3. 结构体与枚举](https://zrlang.github.io/learn/03-structs-enums/) | `struct`、`impl`、`enum`、`Option` | ● 已通过测试 |
 | [4. 包管理与项目](https://zrlang.github.io/learn/04-project/) | `zr pkg` / `fmt` / `lsp`、增量编译 | ◐ 路径依赖 |
-| [5. 集合类型](https://zrlang.github.io/learn/05-collections/) | `Vec<T>`、`String` | ○ 尚未实现 |
-| [6. 错误处理](https://zrlang.github.io/learn/06-errors/) | `panic`、`Result`、`?` | ○ 尚未实现 |
-| [7. 泛型、Trait 与生命周期](https://zrlang.github.io/learn/07-generics/) | 泛型、trait、生命周期 | ○ 尚未实现 |
-| [8. 自动化测试](https://zrlang.github.io/learn/08-testing/) | 断言、25 个用例、跨优化等级运行器 | ◐ 无 `zr test` |
-| [9. 函数式编程特性](https://zrlang.github.io/learn/09-functional/) | 闭包、迭代器、适配器 | ○ 尚未实现 |
+| [5. 集合类型](https://zrlang.github.io/learn/05-collections/) | `Vec<T>`、`String` | ◐ 无 `HashMap` |
+| [6. 错误处理](https://zrlang.github.io/learn/06-errors/) | `panic`、`Result`、`?` | ● 已通过测试 |
+| [7. 泛型、Trait 与生命周期](https://zrlang.github.io/learn/07-generics/) | 泛型、trait、生命周期 | ◐ 无 trait 对象 |
+| [8. 自动化测试](https://zrlang.github.io/learn/08-testing/) | 断言、26 个用例、跨优化等级运行器 | ● 已通过测试 |
+| [9. 函数式编程特性](https://zrlang.github.io/learn/09-functional/) | 闭包、高阶函数、函数指针 | ● 已通过测试 |
 | [10. 智能指针](https://zrlang.github.io/learn/10-pointers/) | 指针、内存模型、栈槽 | ◐ 无 `Box`/`Rc` |
-| [11. 并发编程](https://zrlang.github.io/learn/11-concurrency/) | 协程、`async`、通道 | ○ 尚未实现 |
-| [12. 面向对象特性](https://zrlang.github.io/learn/12-oop/) | 封装、trait 对象、状态模式 | ○ 尚未实现 |
-| [13. 模式匹配](https://zrlang.github.io/learn/13-patterns/) | `match` 脱糖、绑定臂、守卫 | ◐ 仅字面量类 |
+| [11. 并发编程](https://zrlang.github.io/learn/11-concurrency/) | 一等协程、async/await、spawn 调度 | ◐ 无线程/Mutex |
+| [12. 面向对象特性](https://zrlang.github.io/learn/12-oop/) | 结构体、impl 方法 | ◐ 无 trait 对象 |
+| [13. 模式匹配](https://zrlang.github.io/learn/13-patterns/) | `match` 脱糖、绑定臂、守卫 | ● 已通过测试 |
 | [14. 高级特性](https://zrlang.github.io/learn/14-advanced/) | `comptime`、属性、FFI、跨平台 | ◐ 无宏/asm |
 
 ● 已通过测试　◐ 部分可用　○ 尚未实现
@@ -345,8 +347,8 @@ zr pkg init && zr pkg add lib ../lib                # 路径依赖
 
 ## 示例程序
 
-下面三段是这门语言最终的样子，其中**目前只有第 1 段的一部分能编译**
-（`while` 依赖尚未实现的 φ 节点）。它们来自 zr 仓库的 `examples/`。
+下面三段是这门语言最终的样子。**目前第 2、3 段也能编译运行**（`while` 循环已在 v0.6.0 落地）。
+它们来自 zr 仓库的 `examples/`。
 
 ### FizzBuzz
 
@@ -408,7 +410,6 @@ impl<T> List<T> {
     }
 }
 ```
-
 
 ## 参与社区
 

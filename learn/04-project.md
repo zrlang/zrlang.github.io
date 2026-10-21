@@ -4,9 +4,10 @@ description: zr 没有 Cargo，但有 zr pkg、zr fmt、zr lsp 与增量编译�
 sidebar: learn
 status: partial
 status_note: >-
-  zr pkg（init / add / remove / list / tree / build / clean）、zr fmt、
-  zr lsp 与增量编译（默认开启）都已落地。目前 zr pkg 只支持路径依赖，
-  注册表协议与联网排在 v0.8.0；模块系统仍不完整，可靠做法是一个项目一个文件。
+  zr pkg（init / add / remove / list / tree / build / clean）、
+  zr fmt、zr lsp 与增量编译（默认开启）都已落地。
+  目前 zr pkg 只支持路径依赖，注册表协议与联网排在 v0.8.0；
+  模块系统仍不完整，可靠做法是一个项目一个文件。
 prev:
   title: 3. 结构体与枚举
   url: /learn/03-structs-enums/

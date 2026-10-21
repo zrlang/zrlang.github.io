@@ -2,8 +2,8 @@
 title: 5. 集合类型
 description: Vec&lt;T&gt; 与 String 的完整 API，以及为什么 zr 目前没有 HashMap。
 sidebar: learn
-status: planned
-status_note: <code>std</code> 中对应的模块目前仍编译不过。
+status: partial
+status_note: Vec<T> 已实现并可用；String 已实现；HashMap 尚未提供， 目前可用 Vec<(K, V)> 做关联列表替代。
 prev:
   title: 4. 包与管理项目
   url: /learn/04-project/
@@ -15,7 +15,8 @@ next:
 动态增长的集合是日常代码里用得最多的两个类型：`Vec<T>` 和 `String`。
 zr 的实现写在 `std/collections.zr` 与 `std/string.zr` 里，都是纯 zr 代码。
 
-> **⚠️ 当前状态**：这两个模块目前仍编译不过。本章是设计说明 + API 参考。
+> **⚠️ 当前状态**：`Vec<T>` 与 `String` 均已实现；
+> `HashMap` 尚未提供，目前可用 `Vec<(K, V)>` 做关联列表替代。
 
 ## 为什么没有 `HashMap`
 

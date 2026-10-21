@@ -2,8 +2,8 @@
 title: 11. 并发编程
 description: zr 没有线程，有一等协程。async/await、组合子与通道，以及与 Rust 并发模型的对照。
 sidebar: learn
-status: planned
-status_note: 线程、<code>Mutex</code>、<code>Send</code> / <code>Sync</code> 尚未实现。
+status: partial
+status_note: 受限异步降级（async fn / .await / spawn 调度）已落地； 线程、Mutex、Send / Sync 尚未实现； 完整的 std::async 通道、join/race 与唤醒式执行器属于 v1.0 目标。
 prev:
   title: 10. 智能指针
   url: /learn/10-pointers/

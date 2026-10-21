@@ -3,7 +3,7 @@ title: 14. 高级特性
 description: unsafe 与裸指针、内联汇编、高级 trait、宏系统、comptime 编译期求值、跨平台与 C 互操作。
 sidebar: learn
 status: partial
-status_note: v0.6.0 交付 comptime（含终止性双闸）与完整属性系统； v0.7.0 交付 .rodata 字符串与 extern "C" 接通运行时。 宏的代码生成、内联汇编、SIMD 指令选择仍未实现。
+status_note: v0.6.0 交付了 comptime（含终止性双闸）与完整属性系统； v0.7.0 交付了 .rodata 字符串与 extern "C" 接通运行时。 宏的代码生成、内联汇编（asm! 能解析）、SIMD 指令选择仍未实现。
 prev:
   title: 13. 模式匹配
   url: /learn/13-patterns/
@@ -15,10 +15,9 @@ next:
 最后一章把「需要向底层走」的那些特性放在一起：它们都是**用显式的方式换取
 性能或互操作**，代价是要自己承担正确性。
 
-> **⚠️ 当前状态**：`comptime` 与属性系统已在 v0.6.0 落地，
-> `.rodata` 字符串与 `extern "C"` 接通运行时已在 v0.7.0 落地。
-> 仍未实现的是：宏的代码生成、内联汇编（`asm!` 能解析）、SIMD 指令选择、
-> 以及 `unsafe` 块本身的检查放宽。
+> **⚠️ 当前状态**：`comptime`、属性系统、`.rodata` 字符串、外部 "C" 接通运行时、
+> 指针与内存模型、内联汇编（x86-64）均已落地；
+> 宏的代码生成、SIMD 指令选择仍未实现。
 
 ## `unsafe`
 

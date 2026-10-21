@@ -2,9 +2,10 @@
 title: 3. 结构体与枚举
 description: 定义与实例化结构体、impl 方法语法、枚举与 Option——组织数据的两种基本形态。
 sidebar: learn
-status: planned
+status: ready
 status_note: >-
-  <code>struct</code> 能声明但字段读取返回值不正确；<code>enum</code> 尚未实现。
+  struct 构造、字段读写、嵌套、按值传参/返回、作用域析构、impl 方法均已实现；
+  enum 与 Option 已支持；trait 对象动态分派仍属于后续目标。
 prev:
   title: 2. 所有权系统
   url: /learn/02-ownership/
@@ -16,7 +17,8 @@ next:
 结构体把相关字段组合成一个有名字的类型，枚举表达「一个值是若干可能之一」。
 zr 的这两者与 Rust 同构，额外提供了显式的布局控制。
 
-> **⚠️ 当前状态**：`struct` 能声明，但字段读取目前返回错误的值；`enum` 尚未实现。
+> **⚠️ 当前状态**：`struct` 构造、字段读写、impl 方法均已实现；
+> `enum` 与 `Option` 已支持；trait 对象动态分派仍属于后续目标。
 > 本章是设计说明。
 
 ## 定义与实例化

@@ -2,8 +2,8 @@
 title: 7. 泛型、Trait 与生命周期
 description: 泛型函数与类型、trait 与默认实现、trait bound、关联类型、生命周期标注与省略规则。
 sidebar: learn
-status: planned
-status_note: 类型检查器尚未把类型参数绑定成类型。
+status: partial
+status_note: 泛型函数与类型、trait 与默认实现、trait bound、生命周期标注均已实现； 唯一缺口是 trait 对象动态分派仍属于后续目标。
 prev:
   title: 6. 错误处理
   url: /learn/06-errors/
@@ -15,7 +15,8 @@ next:
 泛型让你写一次、对多种类型生效的代码；trait 描述「一个类型能做哪些事」；
 生命周期描述「引用能活多久」。三者共同构成了 zr 的零成本抽象能力。
 
-> **⚠️ 当前状态**：类型检查器尚未把类型参数绑定成类型。本章是设计说明。
+> **⚠️ 当前状态**：泛型函数与类型、trait 与约束、生命周期均已实现；
+> 唯一缺口是 trait 对象动态分派仍属于后续目标。
 
 ## 泛型函数
 
