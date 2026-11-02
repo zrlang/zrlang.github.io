@@ -3,7 +3,10 @@ title: 11. 并发编程
 description: zr 没有线程，有一等协程。async/await、组合子与通道，以及与 Rust 并发模型的对照。
 sidebar: learn
 status: partial
-status_note: 受限异步降级（async fn / .await / spawn 调度）已落地； 线程、Mutex、Send / Sync 尚未实现； 完整的 std::async 通道、join/race 与唤醒式执行器属于 v1.0 目标。
+status_note: >-
+  一等协程与受限异步降级（async fn / .await / spawn / yield）已落地；线程
+  （spawn/join、共享数据）已可用；Mutex、Send / Sync 与完整 std::async 通道、
+  join/race、唤醒式执行器属于 v1.0 目标。
 prev:
   title: 10. 智能指针
   url: /learn/10-pointers/
@@ -12,17 +15,22 @@ next:
   url: /learn/12-oop/
 ---
 
-Rust 的并发建立在操作系统线程上。**zr 完全没有线程** —— 它把并发做成了
-一等协程：语言原语，而不是库胶水。
+Rust 的并发建立在操作系统线程上。zr 把并发做成了**一等协程**：语言原语，
+而不是库胶水；同时也支持操作系统线程（`spawn`/`join`，共享数据）。
 
-> **⚠️ 当前状态**：线程、`Mutex`、`Send` / `Sync` 尚未实现；
-> `std/async.zr` 的运行时模块目前仍编译不过。本章是设计说明。
+> **⚠️ 当前状态**：一等协程与受限异步降级（`async fn` / `.await` / `spawn` /
+> `yield`）已落地；线程 `spawn`/`join` 已可用。`Mutex`、`Send` / `Sync`、通道
+> 与唤醒式执行器尚未实现（`std/async.zr` 的 `Box`/`*mut dyn Wake` 仍阻塞）。
 
-## zr 没有线程
+## zr 的并发模型
 
 | 能力 | Rust | zr |
 |:-----|:-----|:----|
-| 操作系统线程 | `thread::spawn` | ✘ |
+| 操作系统线程 | `thread::spawn` | ✔（`spawn`/`join`，共享数据） |
+| 一等协程 | ✘ | ✔ |
+| `async`/`await` | ✔ | ✔（受限降级） |
+| 通道 | `mpsc` | 未实现 |
+| `Mutex` | `std::sync` | 未实现 |
 | 线程同步 | `Mutex` / `RwLock` | ✘ |
 | 可跨线程的标记 | `Send` / `Sync` | 内建 trait，无实现方 |
 | 消息传递 | `mpsc::channel` | `Channel<T>` ✔ |

@@ -12,7 +12,7 @@ permalink: /
 
 <p>
 <a href="https://github.com/zrlang/zr/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-MIT-c2410c.svg" alt="MIT License" height="20"></a>
-<a href="https://github.com/zrlang/zr/releases"><img src="https://img.shields.io/badge/version-0.5.0-c2410c.svg" alt="version 0.5.0" height="20"></a>
+<a href="https://github.com/zrlang/zr/releases"><img src="https://img.shields.io/badge/version-0.8.0-c2410c.svg" alt="version 0.8.0" height="20"></a>
 <a href="https://github.com/zrlang/zr/actions"><img src="https://img.shields.io/badge/build-passing-4c9a56.svg" alt="build passing" height="20"></a>
 <a href="https://zrlang.github.io/tools/targets/"><img src="https://img.shields.io/badge/targets-11%20platforms-c2410c.svg" alt="11 platforms" height="20"></a>
 </p>
@@ -24,9 +24,9 @@ permalink: /
 ## 先读这一段：项目状态
 
 zr 正在快速推进。**v0.5.0、v0.6.0、v0.7.0、v0.8.0 里程碑均已全部完成**，语言测试用例
-从最早的 8 个增加到 **26 个**：
+从最早的 8 个增加到 **125 个**（另有 37 个负向用例，覆盖"该报错的还在报错"）：
 
-```bash
+```zr
 # 现在就能编译并运行
 fn fib(n: i32) -> i32 {
     if n <= 1 { return n; }
@@ -41,13 +41,18 @@ fn main() -> i32 {
 }
 ```
 
-已跑通的领域：**变量、标量与浮点、函数与递归、全部循环、`if`/`else` 作为表达式、
-`match` 字面量匹配、`comptime` 编译期求值、`as` 转换、指针与 `.rodata` 字符串、寄存器溢出、
-运行时结构体、函数指针、异步降级**。
+已跑通的领域：**变量、标量与浮点、函数与递归、全部循环（含 `for`）、`if`/`else` 作为
+表达式、`match` 全模式（字面量/绑定/或/guard/结构体/元组/范围/枚举/`if let`/`while let`/
+`let` 解构）、`comptime` 编译期求值、`as` 转换、指针与 `.rodata` 字符串、寄存器溢出、
+运行时结构体、枚举与 `union`、`impl` 方法与 `Drop`、函数指针、泛型/trait/关联类型、
+`impl Trait`、`const` 泛型、闭包（含转 `fn` 值）、`async`/`await`/`spawn`/`yield`、
+`Vec`/`String`/切片、`Result` 与 `?`、`#[derive]`、`macro_rules!`、线程与文件系统**。
 每个用例都会在 `-O0` 到 `-Oz` 各编译运行一遍，防止优化改坏语义。
 
-还没动的语言层面：**所有权与借用、结构体字段与枚举、切片、`Vec`/`String`、
-`Result`、泛型/trait、闭包、线程**。`for` 也还不能用（区间表达式解析问题）。
+还没动的语言层面：**`Box`/`Rc`/`RefCell` 智能指针、`HashMap`/`HashSet`、trait 对象
+（`dyn`）的 vtable 分派、`panic!` 宏、迭代器组合子、完整借用检查（当前是最小切片 +
+NLL 近似）、生命周期检查（标注解析后丢弃）、proc-macro**。`unsafe` 块可解析并通过
+类型检查，但当前不改变语义。
 
 [教程](/learn/)的 14 章按 Rust Book 顺序写全了**语言设计**，每章顶部标注真实状态。
 完整进展见[项目进展](https://zrlang.github.io/community/roadmap/)。
@@ -303,9 +308,9 @@ zr pkg init && zr pkg add lib ../lib                # 路径依赖
 - **v0.7.0 ✅** — AArch64 浮点、字符串字面量落 `.rodata`、`extern "C"` 接通运行时、
   指针与最小 SSA 内存模型；ARM32/RISC-V/wasm 的浮点与指针后端、ARM32/RISC-V/wasm 浮点
   与指针访问、wasm 结构化控制流与线性内存、32 位目标多字长算术、增量编译/多线程编译。
-- **v0.8.0 ✅** — `zr build`/`run` 子命令、`zr pkg` 注册表与联网、`zr fmt`、`zr lsp`、
-  内联汇编（x86-64）、SIMD 指令选择（x86-64）、定长数组与自动向量化、运行时结构体、
-  一等函数指针（x86-64）、受限异步降级、指针/字符串切片表示。
+- **v0.8.0 ✅** — 字面量类型后缀、`match` 运行期语义、结构体/元组/范围/枚举模式、
+  枚举与 `Drop` 部分移动、函数指针、受限异步降级、`#[derive]` 方法体、
+  `macro_rules!`、线程、`i128`/`u128`。
 - **v1.0.0 🎯** — API 稳定、完整异步运行时、**自举**（用 zr 重写编译器）、性能接近 Rust。
 
 每项的完整清单与已知边界见[项目进展](https://zrlang.github.io/community/roadmap/)。
@@ -318,20 +323,20 @@ zr pkg init && zr pkg add lib ../lib                # 路径依赖
 | 章 | 内容 | 状态 |
 |:---|:-----|:-----|
 | [安装与第一个程序](https://zrlang.github.io/learn/getting-started/) | 构建编译器、交叉编译 | ● 已通过测试 |
-| [1. 基础语法](https://zrlang.github.io/learn/01-syntax/) | 变量、类型、函数、循环 | ◐ 仅缺 `for` |
-| [2. 所有权系统](https://zrlang.github.io/learn/02-ownership/) | 所有权、借用、生命周期、Drop | ● 已通过测试 |
-| [3. 结构体与枚举](https://zrlang.github.io/learn/03-structs-enums/) | `struct`、`impl`、`enum`、`Option` | ● 已通过测试 |
+| [1. 基础语法](https://zrlang.github.io/learn/01-syntax/) | 变量、类型、函数、循环（含 `for`） | ● 已通过测试 |
+| [2. 所有权系统](https://zrlang.github.io/learn/02-ownership/) | 所有权、借用、生命周期、Drop | ◐ 最小移动 + 借用切片；生命周期未检查 |
+| [3. 结构体与枚举](https://zrlang.github.io/learn/03-structs-enums/) | `struct`、`impl`、`enum`、`Option`、`union` | ● 已通过测试 |
 | [4. 包管理与项目](https://zrlang.github.io/learn/04-project/) | `zr pkg` / `fmt` / `lsp`、增量编译 | ◐ 路径依赖 |
 | [5. 集合类型](https://zrlang.github.io/learn/05-collections/) | `Vec<T>`、`String` | ◐ 无 `HashMap` |
-| [6. 错误处理](https://zrlang.github.io/learn/06-errors/) | `panic`、`Result`、`?` | ● 已通过测试 |
+| [6. 错误处理](https://zrlang.github.io/learn/06-errors/) | `panic`、`Result`、`?` | ● 已通过测试（无 `panic!` 宏） |
 | [7. 泛型、Trait 与生命周期](https://zrlang.github.io/learn/07-generics/) | 泛型、trait、生命周期 | ◐ 无 trait 对象 |
-| [8. 自动化测试](https://zrlang.github.io/learn/08-testing/) | 断言、26 个用例、跨优化等级运行器 | ● 已通过测试 |
-| [9. 函数式编程特性](https://zrlang.github.io/learn/09-functional/) | 闭包、高阶函数、函数指针 | ● 已通过测试 |
+| [8. 自动化测试](https://zrlang.github.io/learn/08-testing/) | 断言、125 个用例、跨优化等级运行器 | ● 已通过测试 |
+| [9. 函数式编程特性](https://zrlang.github.io/learn/09-functional/) | 闭包、高阶函数、函数指针 | ● 已通过测试（无迭代器） |
 | [10. 智能指针](https://zrlang.github.io/learn/10-pointers/) | 指针、内存模型、栈槽 | ◐ 无 `Box`/`Rc` |
-| [11. 并发编程](https://zrlang.github.io/learn/11-concurrency/) | 一等协程、async/await、spawn 调度 | ◐ 无线程/Mutex |
+| [11. 并发编程](https://zrlang.github.io/learn/11-concurrency/) | 一等协程、async/await、spawn 调度、线程 | ◐ 无通道/Mutex |
 | [12. 面向对象特性](https://zrlang.github.io/learn/12-oop/) | 结构体、impl 方法 | ◐ 无 trait 对象 |
-| [13. 模式匹配](https://zrlang.github.io/learn/13-patterns/) | `match` 脱糖、绑定臂、守卫 | ● 已通过测试 |
-| [14. 高级特性](https://zrlang.github.io/learn/14-advanced/) | `comptime`、属性、FFI、跨平台 | ◐ 无宏/asm |
+| [13. 模式匹配](https://zrlang.github.io/learn/13-patterns/) | `match` 脱糖、绑定臂、守卫、解构 | ● 已通过测试 |
+| [14. 高级特性](https://zrlang.github.io/learn/14-advanced/) | `comptime`、属性、FFI、宏、跨平台 | ◐ `unsafe` 无语义、无 proc-macro |
 
 ● 已通过测试　◐ 部分可用　○ 尚未实现
 
@@ -347,7 +352,8 @@ zr pkg init && zr pkg add lib ../lib                # 路径依赖
 
 ## 示例程序
 
-下面三段是这门语言最终的样子。**目前第 2、3 段也能编译运行**（`while` 循环已在 v0.6.0 落地）。
+下面三段是这门语言最终的样子。**第 1、2 段现在能编译运行**（`while`/`for` 循环、
+指针与切片均已落地）；第 3 段用了 `Box`，等智能指针实现后再跑。
 它们来自 zr 仓库的 `examples/`。
 
 ### FizzBuzz

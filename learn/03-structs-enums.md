@@ -4,8 +4,8 @@ description: 定义与实例化结构体、impl 方法语法、枚举与 Option�
 sidebar: learn
 status: ready
 status_note: >-
-  struct 构造、字段读写、嵌套、按值传参/返回、作用域析构、impl 方法均已实现；
-  enum 与 Option 已支持；trait 对象动态分派仍属于后续目标。
+  struct 构造、字段读写、嵌套、按值传参/返回、作用域析构、impl 方法、枚举、
+  union（类型双关）、元组结构体均已实现；trait 对象动态分派仍属于后续目标。
 prev:
   title: 2. 所有权系统
   url: /learn/02-ownership/

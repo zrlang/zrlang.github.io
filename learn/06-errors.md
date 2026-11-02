@@ -3,7 +3,7 @@ title: 6. 错误处理
 description: panic、Result、? 运算符——错误是值，传播是运算符，zr 里没有异常。
 sidebar: learn
 status: ready
-status_note: panic、Result、? 运算符、unwrap_or 等均已实现。
+status_note: Result、? 运算符、unwrap_or 等均已实现；panic/assert 以函数提供（panic! 宏未实现）。
 prev:
   title: 5. 集合类型
   url: /learn/05-collections/
@@ -15,8 +15,8 @@ next:
 zr 没有异常。所有可能失败的函数都在**返回类型**里声明这一点 ——
 调用点一眼就能看出这个函数会不会失败。
 
-> **⚠️ 当前状态**：`panic`、`assert` / `assert_eq`、`Result` 与 `?` 运算符均已实现。
-> 本章是设计说明。
+> **⚠️ 当前状态**：`Result` / `Option` 与 `?` 运算符、`unwrap_or` 等均已实现；
+> `panic` / `assert` 以函数形式提供（`panic!` 宏未实现）。本章是设计说明。
 
 ## 两种失败
 

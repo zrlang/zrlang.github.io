@@ -25,7 +25,7 @@ zr clean                       # 清空增量编译缓存
 ## 编译
 
 ```
-zr 0.5.0 — zr language compiler
+zr 0.8.0 — zr language compiler
 
 USAGE:
     zr [OPTIONS] <INPUT.zr>
@@ -126,8 +126,9 @@ zr app.zr --target arm-none-eabi              -o app.elf
 
 完整列表见[支持的目标平台](/tools/targets/)。
 
-> 部分目标会**明确报错**而不是生成错误代码：ARM32 / RISC-V / wasm 后端
-> 尚未实现浮点指令选择与指针/内存访问，遇到这些会直接失败。
+> 浮点、指针/内存访问与字符串字面量取址已在 x86-64、AArch64、ARM32、RISC-V、
+> wasm 上全部落地。仍明确报错的情况：浮点值的取址/解引用、两个指针相加、
+> 泛型/异步函数当值、带捕获闭包经 `extern "C"` 传 C 回调。
 
 ## `--wat`
 
@@ -229,7 +230,7 @@ zr lsp
 ## `-V` / `--version`
 
 ```
-zr 0.5.0
+zr 0.8.0
 host: x86_64-apple-darwin (Mach-O)
 targets: arm-none-eabi, riscv32-unknown-none, riscv64-unknown-none,
          x86_64-unknown-linux-gnu, aarch64-unknown-linux-gnu,

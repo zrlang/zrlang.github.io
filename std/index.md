@@ -147,7 +147,8 @@ use std::slice::{SliceIter, Range, range_step};
 而 `Vec` / `String` 的 `len()` 是方法。`Slice` 与 `SliceMut` 这两个视图类型
 定义在 `std::mem` 里，不在 `std::slice` 里。
 
-高阶函数的参数是**函数指针**而不是闭包（闭包尚未实现）：
+高阶函数的参数是**函数指针** `fn(T) -> U`（闭包可转成 `fn` 值，见
+[9. 函数式编程特性](/learn/09-functional/)）：
 
 ```rust
 pub fn map<T, U>(s: []const T, f: fn(T) -> U) -> []U

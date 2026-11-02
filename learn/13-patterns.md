@@ -3,7 +3,10 @@ title: 13. 模式匹配
 description: match 与 if let、解构、匹配守卫——zr 里表达「不同形状的数据」的统一手段。
 sidebar: learn
 status: ready
-status_note: match 已脱糖成 if/else 链并有完整运行期语义：字面量、_、绑定臂、 或模式、guard，以及 bool 穷尽时不写尾 _（用例 25_match.zr）。 枚举 payload / 范围模式尚未实现。
+status_note: >-
+  match 已脱糖成 if/else 链并有完整运行期语义：字面量、_、绑定臂、或模式、guard、
+  结构体 / 元组 / 范围 / 枚举变体模式、if let / while let / let 解构，
+  以及穷尽性编译期强制（用例 25 / 52 / 54-57 / 62-63 / 121）。
 prev:
   title: 12. 面向对象特性
   url: /learn/12-oop/
@@ -17,9 +20,10 @@ next:
 一整类 bug 的关键设计。
 
 > **⚠️ 当前状态**：`match` 已脱糖成 if/else 链并有完整运行期语义（用例 `25_match.zr`），
-> 支持字面量（含负数与 `char`）、`_`、绑定臂、或模式、`guard`，
-> 以及 bool 穷尽时不写尾 `_`。枚举 payload / 范围模式尚未实现；
-> `while let` 解析器里也没有。
+> 支持字面量（含负数与 `char`）、`_`、绑定臂、或模式、`guard`、结构体模式
+> （`..` 尾、嵌套）、元组模式、范围模式、枚举变体模式，以及 `if let` / `while let` /
+> `let` 解构（含切片模式）。穷尽性在编译期强制，缺臂报错区分场景（枚举列出
+> 缺失变体名）。
 
 ## `match` 的结构
 
@@ -251,8 +255,8 @@ let body = if flag { 1 } else { 0 };
 ```
 
 `match` 在 zr 里是需要显式 `return` 的普通表达式，因此和函数返回一致。
-但 `match` 作为表达式**依赖分支合流**（需要 φ 节点），
-而这正是当前编译器尚未实现的部分。
+`match` 作为表达式**依赖分支合流**（需要 φ 节点），这部分已实现
+（`80_match_value.zr` 钉住穷尽 match 的返回值）。
 
 ## 小结
 

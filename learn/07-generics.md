@@ -3,7 +3,10 @@ title: 7. 泛型、Trait 与生命周期
 description: 泛型函数与类型、trait 与默认实现、trait bound、关联类型、生命周期标注与省略规则。
 sidebar: learn
 status: partial
-status_note: 泛型函数与类型、trait 与默认实现、trait bound、生命周期标注均已实现； 唯一缺口是 trait 对象动态分派仍属于后续目标。
+status_note: >-
+  泛型函数与类型、trait 与默认方法、trait bound、关联类型投影、impl Trait（APIT）、
+  const 泛型、限定路径均已实现；生命周期标注可解析但检查仍丢弃；
+  唯一缺口是 trait 对象动态分派。
 prev:
   title: 6. 错误处理
   url: /learn/06-errors/
@@ -15,8 +18,10 @@ next:
 泛型让你写一次、对多种类型生效的代码；trait 描述「一个类型能做哪些事」；
 生命周期描述「引用能活多久」。三者共同构成了 zr 的零成本抽象能力。
 
-> **⚠️ 当前状态**：泛型函数与类型、trait 与约束、生命周期均已实现；
-> 唯一缺口是 trait 对象动态分派仍属于后续目标。
+> **⚠️ 当前状态**：泛型函数与类型、trait 与默认方法、trait bound、关联类型投影
+> （`F::Output` / `<T as Trait>::Item`）、`impl Trait`（参数位置）、`const` 泛型均已实现；
+> 生命周期标注可解析并全链路跑通，但类型检查仍整体丢弃（无存活检查）；
+> 唯一缺口是 trait 对象动态分派（`dyn` 的 vtable）。
 
 ## 泛型函数
 

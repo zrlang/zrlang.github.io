@@ -256,11 +256,11 @@ zr 的哲学是**显式优于隐式**：`std/slice.zr` 提供的是命名清晰�
 
 | 概念 | zr 写法 | 状态 |
 |:-----|:---------|:-----|
-| 闭包 | `\|x\| expr` | ✘ 未实现 |
+| 闭包（无捕获 / 带捕获 / 转 `fn` 值） | `\|x\| expr` | ✔（`83`/`84`/`109`/`110`/`125`） |
 | 函数指针 | `fn(T) -> U` | ✔ |
 | `impl Fn` | `impl Fn(T) -> T` | 设计完成 |
 | 迭代器 trait | `Iterator::next -> Option<Self::Item>` | ✔ |
-| `for x in s` | 脱糖成 `next` | ✘ 依赖循环实现 |
+| `for x in s` | 脱糖成 `next` | ✔（`44_for_range` / `45_for_array`） |
 | 适配器 | `map` / `filter` / `sort` … | ✔ `std/slice.zr` |
 | 消费器 | `fold` / `reduce` / `any` / `all` | ✔ |
 

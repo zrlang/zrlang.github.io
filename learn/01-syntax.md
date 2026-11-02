@@ -2,11 +2,11 @@
 title: 1. 基础语法
 description: 变量与可变性、标量与复合类型、函数与注释、控制流——zr 语言入门的地基。
 sidebar: learn
-status: partial
+status: ready
 status_note: >-
   变量、标量与浮点、运算符、函数、递归、while / loop / break / continue、
-  if 作为表达式、else if 链、as 转换、字面量类型后缀均已通过测试。
-  当前唯一的语法缺口是 for —— a..b 区间表达式仍解析成标识符。
+  if 作为表达式、else if 链、as 转换、字面量类型后缀、for 范围循环与数组遍历
+  均已通过测试。
 prev:
   title: 安装与第一个程序
   url: /learn/getting-started/

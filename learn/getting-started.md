@@ -23,7 +23,7 @@ zr clean                       # 清空增量编译缓存
 ```
 
 ```
-zr 0.5.0 — zr language compiler
+zr 0.8.0 — zr language compiler
 
 USAGE:
     zr [OPTIONS] <INPUT.zr>
@@ -57,7 +57,7 @@ OPTIONS:
 `--version` 的输出：
 
 ```
-zr 0.5.0
+zr 0.8.0
 host: x86_64-apple-darwin (Mach-O)
 targets: arm-none-eabi, riscv32-unknown-none, riscv64-unknown-none,
          x86_64-unknown-linux-gnu, aarch64-unknown-linux-gnu,
@@ -225,7 +225,7 @@ zr program.zr --dump-asm       # ⑦ 最终机器码
 
 ## 跑语言测试
 
-zr 的测试是自检式 `.zr` 程序（`tests/cases/*.zr`，共 25 个），由宿主侧运行器驱动。
+zr 的测试是自检式 `.zr` 程序（`tests/cases/*.zr`，共 125 个），由宿主侧运行器驱动。
 每个用例会在 `-O0` / `-O1` / `-O2` / `-O3` / `-Oz` 下**各编译运行一遍** ——
 优化 pass 只要有一条改坏语义，用例就会在某个等级上变红。
 
